@@ -1,5 +1,3 @@
-"use client";
-
 import Map from "./components/Map";
 import SearchBox from "./components/SearchBox";
 import ChipFilters from "./components/ChipFilter";

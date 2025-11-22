@@ -16,9 +16,10 @@ type Marker = {
 
 type Props = {
   markers: Marker[];
+  onChangeBounds?: (newBounds: mapboxgl.LngLatBounds) => void;
 };
 
-const Map = ({ markers }: Props) => {
+const Map = ({ markers, onChangeBounds }: Props) => {
   const mapContainerRef = useRef(null);
 
   useEffect(() => {
@@ -29,6 +30,17 @@ const Map = ({ markers }: Props) => {
       style: "mapbox://styles/mapbox/streets-v11",
       center: [-70.6009, -33.4173],
       zoom: 12,
+    });
+
+    map.on("load", () => {
+      map.on("moveend", () => {
+        if (onChangeBounds) {
+          const bounds = map.getBounds();
+          if (bounds) {
+            onChangeBounds(bounds);
+          }
+        }
+      });
     });
 
     markers.forEach((marker) => {
@@ -57,7 +69,7 @@ const Map = ({ markers }: Props) => {
     );
 
     return () => map.remove();
-  }, [markers]);
+  }, [markers, onChangeBounds]);
 
   return <div className="w-150 h-150" ref={mapContainerRef} />;
 };

@@ -1,3 +1,6 @@
+"use client";
+
+import { LngLatBounds } from "mapbox-gl";
 import MapComponent from "../ui/Map";
 
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -25,9 +28,20 @@ const Map = () => {
       latitude: -33.414,
       color: "#00ff00",
     },
+    {
+      title: "Marker 4",
+      description: "Description 4",
+      longitude: -70.603,
+      latitude: -33.418,
+      color: "#ffff00",
+    },
   ];
 
-  return <MapComponent markers={markers} />;
+  const onChangeBounds = (newBounds: LngLatBounds) => {
+    console.log("New bounds:", newBounds);
+  };
+
+  return <MapComponent markers={markers} onChangeBounds={onChangeBounds} />;
 };
 
 export default Map;

@@ -36,7 +36,6 @@ const Map = ({ markers, onChangeBounds }: Props) => {
       zoom: 12,
     });
 
-<<<<<<< HEAD
     map.on("load", () => {
       map.on("moveend", () => {
         if (onChangeBounds) {
@@ -46,7 +45,8 @@ const Map = ({ markers, onChangeBounds }: Props) => {
           }
         }
       });
-=======
+    });
+
     mapRef.current = map;
 
     // Add click handler for pin creation
@@ -67,7 +67,6 @@ const Map = ({ markers, onChangeBounds }: Props) => {
 
     map.on('mouseleave', () => {
       map.getCanvas().style.cursor = '';
->>>>>>> dedc0d5 (updated map for pin integration)
     });
 
     markers.forEach((marker) => {
@@ -95,10 +94,6 @@ const Map = ({ markers, onChangeBounds }: Props) => {
       })
     );
 
-<<<<<<< HEAD
-    return () => map.remove();
-  }, [markers, onChangeBounds]);
-=======
     // Test marker to verify marker functionality works
     map.on('load', () => {
       console.log('Map loaded, adding test marker...');
@@ -108,10 +103,9 @@ const Map = ({ markers, onChangeBounds }: Props) => {
         .addTo(map);
       console.log('Test marker added successfully');
     });
->>>>>>> dedc0d5 (updated map for pin integration)
 
     return () => map.remove();
-  }, [markers, isCreatingPin]);
+  }, [markers, onChangeBounds, isCreatingPin]);
 
   const handleCreatePin = async (formData: {
     title: string;

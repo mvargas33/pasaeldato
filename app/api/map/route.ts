@@ -36,6 +36,7 @@ function transformTipToMapPin(tip: TipPinLean | TipPinDocument): MapPin {
   const comments = Array.isArray(tipObj.comments) ? tipObj.comments : [];
   const likedBy = Array.isArray(tipObj.likedBy) ? tipObj.likedBy : [];
   const dislikedBy = Array.isArray(tipObj.dislikedBy) ? tipObj.dislikedBy : [];
+  const tags = Array.isArray(tipObj.tags) ? tipObj.tags.filter((tag): tag is string => typeof tag === 'string') : [];
   
   return {
     id: convertObjectId(tipObj._id),
@@ -44,6 +45,7 @@ function transformTipToMapPin(tip: TipPinLean | TipPinDocument): MapPin {
     type: (tipObj.type as MapPinType) || MapPinType.PIN,
     title: (tipObj.title as string) || '',
     description: (tipObj.description as string) || '',
+    tags,
     location: {
       point: location?.point || { type: 'Point', coordinates: [0, 0] },
       radius: location?.radius || 0,

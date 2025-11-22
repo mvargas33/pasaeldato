@@ -140,6 +140,7 @@ export interface MapPin {
   type: MapPinType; // Discriminator type for TipPin
   title: string;
   description: string; // Main content for MVP (replaces contact and dynamic fields)
+  tags: string[]; // Tags for categorization and search
   
   // Location Details
   location: LocationModel; // Embedded Location information

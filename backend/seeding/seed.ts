@@ -141,6 +141,7 @@ async function seedTips(tipsData: any[], userMap: Map<string, any>, communityMap
       type: tipData.type,
       title: tipData.title,
       description: tipData.description,
+      tags: tipData.tags || [],
       comments: (tipData.comments || []).map((commentId: string) => messageMap.get(commentId)._id),
       likedBy: (tipData.likedBy || []).map((identifier: string) => {
         return (userMap as any).byId.get(identifier)?._id || userMap.get(identifier)?._id;

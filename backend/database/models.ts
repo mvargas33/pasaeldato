@@ -206,6 +206,10 @@ const TipBaseSchema = new mongoose.Schema({
     trim: true,
     maxlength: 5000,
   },
+  tags: [{
+    type: String,
+    trim: true,
+  }],
   comments: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "Message",
@@ -233,6 +237,7 @@ const TipBaseSchema = new mongoose.Schema({
 TipBaseSchema.index({ communityId: 1, createdAt: -1 });
 TipBaseSchema.index({ type: 1, createdAt: -1 });
 TipBaseSchema.index({ createdAt: -1 });
+TipBaseSchema.index({ tags: 1 });
 
 TipBaseSchema.pre("save", function (next) {
   this.updatedAt = new Date();
@@ -262,6 +267,9 @@ TipBaseSchema.pre("save", function (next) {
       uniqueIds.add(idStr);
       return true;
     });
+  }
+  if (this.isModified("tags") || this.isNew) {
+    this.tags = [...new Set(this.tags.filter((tag: string) => tag.trim().length > 0))];
   }
   next();
 });

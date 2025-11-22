@@ -126,25 +126,38 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Upload failed. AWS credentials (ID and Key) are required for POST operations." }, { status: 401 });
     }
 
-    const { key, data } = await request.json();
+    const body = await request.json();
+    const { filename, imageBase64 } = body;
 
-    if (!key || !data) {
-      return NextResponse.json({ error: "Missing 'key' or 'data' in request body" }, { status: 400 });
+    if (!filename || !imageBase64) {
+      return NextResponse.json({ error: "Missing 'filename' or 'imageBase64' in request body" }, { status: 400 });
     }
-    
+
+    // Convert base64 to buffer
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Determine content type from base64 string
+    const contentTypeMatch = imageBase64.match(/^data:(image\/\w+);base64,/);
+    const contentType = contentTypeMatch ? contentTypeMatch[1] : 'image/png';
+
+    // Create the S3 key (path in bucket)
+    const s3Key = `pins/${filename}`;
+
     const putCommand = new PutObjectCommand({
       Bucket: BUCKET_NAME,
-      Key: key, // The file path/name in the bucket
-      Body: data, // The content to upload
-      ContentType: "text/plain", // Set the correct MIME type
+      Key: s3Key,
+      Body: buffer,
+      ContentType: contentType,
       // ACL: "public-read", // REMOVED: This bucket does not support ACLs due to Object Ownership configuration.
     });
 
     const response = await s3Client.send(putCommand);
 
-    return NextResponse.json({ 
-        message: `Successfully uploaded ${key} to S3`, 
-        eTag: response.ETag 
+    return NextResponse.json({
+        message: `Successfully uploaded ${filename} to S3`,
+        s3Key,
+        eTag: response.ETag
     }, { status: 201 });
 
   } catch (error) {

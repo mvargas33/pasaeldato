@@ -18,7 +18,7 @@ const Content = ({ mapPins, onChangeMapCenter }: Props) => {
   ];
 
   return (
-    <main className="flex flex-col pt-24 px-6 pb-6 gap-6">
+    <main className="flex flex-col pt-24 px-6 pb-6 gap-6" style={{ background: 'var(--color-background)' }}>
       {/* Search and Filters Section */}
       <section className="flex flex-col gap-4 mt-3">
         <SearchBox />

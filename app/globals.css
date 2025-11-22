@@ -27,13 +27,6 @@
   --color-chip-8: #98A1BC; 
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #FCF5EB;
-    --foreground: rgb(28, 30, 33);
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);

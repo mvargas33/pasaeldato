@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="light" style={{ colorScheme: 'light' }}>
       <meta name="apple-mobile-web-app-title" content="PasaElDato" />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

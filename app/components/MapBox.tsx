@@ -6,7 +6,7 @@ import Pin from './Pin';
 import PinCreationForm from './PinCreationForm';
 import AddPinButton from './AddPinButton';
 import FloatingAddButton from './FloatingAddButton';
-import { MapPin, LocationModel } from '../types/app';
+import { MapPin, LocationModel } from '../../types/app';
 
 // The Mapbox token provided by the user
 const MAPBOX_TOKEN: string = 'sk.eyJ1IjoidmljdG9ycGF0byIsImEiOiJjbWk5c3R1OWswcm12MnFweDlrbzczeG51In0.H7c4HwPZkhydNiTQ3idjgA';

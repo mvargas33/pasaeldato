@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { initializeMongoDb } from "@/backend/database/connection";
 import { TipPin } from "@/backend/database/models";
-import { MapPin, ApiResponse } from "@/types/app";
+import { MapPin, ApiResponse, MapPinType } from "@/types/app";
 import mongoose from "mongoose";
 
 type TipPinDocument = mongoose.HydratedDocument<InstanceType<typeof TipPin>>;
@@ -41,7 +41,7 @@ function transformTipToMapPin(tip: TipPinLean | TipPinDocument): MapPin {
     id: convertObjectId(tipObj._id),
     authorId: convertObjectId(tipObj.authorId),
     communityId: convertObjectId(tipObj.communityId),
-    type: (tipObj.type as 'pin') || 'pin',
+    type: (tipObj.type as MapPinType) || MapPinType.PIN,
     title: (tipObj.title as string) || '',
     description: (tipObj.description as string) || '',
     location: {
@@ -53,6 +53,7 @@ function transformTipToMapPin(tip: TipPinLean | TipPinDocument): MapPin {
     colour: tipObj.colour as string | undefined,
     startDate: convertDate(tipObj.startDate),
     duration: tipObj.duration as number | undefined,
+    contact: tipObj.contact || {},
     comments: comments.map(convertObjectId),
     likedBy: likedBy.map(convertObjectId),
     dislikedBy: dislikedBy.map(convertObjectId),

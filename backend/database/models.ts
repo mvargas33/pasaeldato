@@ -27,8 +27,6 @@ const LocationSchema = new mongoose.Schema({
   },
 }, { _id: false });
 
-LocationSchema.index({ point: "2dsphere" });
-
 export const UserSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -53,8 +51,6 @@ export const UserSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
-
-UserSchema.index({ email: 1 });
 
 UserSchema.pre("save", function (next) {
   this.updatedAt = new Date();
@@ -273,7 +269,6 @@ const TipEventSchema = new mongoose.Schema({
   startDate: {
     type: Date,
     required: true,
-    index: true,
   },
   location: {
     type: LocationSchema,
@@ -286,10 +281,10 @@ TipEventSchema.index({ startDate: 1 });
 
 const TipTextSchema = new mongoose.Schema({});
 
-export const User = mongoose.model("User", UserSchema);
-export const Message = mongoose.model("Message", MessageSchema);
-export const Community = mongoose.model("Community", CommunitySchema);
-export const Tip = mongoose.model("Tip", TipBaseSchema);
-export const TipPin = Tip.discriminator("pin", TipPinSchema);
-export const TipEvent = Tip.discriminator("event", TipEventSchema);
-export const TipText = Tip.discriminator("text", TipTextSchema);
+export const User = mongoose.models.User || mongoose.model("User", UserSchema);
+export const Message = mongoose.models.Message || mongoose.model("Message", MessageSchema);
+export const Community = mongoose.models.Community || mongoose.model("Community", CommunitySchema);
+export const Tip = mongoose.models.Tip || mongoose.model("Tip", TipBaseSchema);
+export const TipPin = Tip.discriminators?.pin || Tip.discriminator("pin", TipPinSchema);
+export const TipEvent = Tip.discriminators?.event || Tip.discriminator("event", TipEventSchema);
+export const TipText = Tip.discriminators?.text || Tip.discriminator("text", TipTextSchema);

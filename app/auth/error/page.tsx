@@ -1,21 +1,13 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-
-const errorMessages: Record<string, string> = {
-  Configuration: "There is a problem with the server configuration.",
-  AccessDenied: "You do not have permission to sign in.",
-  Verification: "The verification token has expired or has already been used.",
-  Default: "An error occurred during authentication.",
-};
+import { Suspense } from "react";
+import ErrorMessage from "./ErrorMessage";
 
 export default function AuthError() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const error = searchParams.get("error") || "Default";
-  const errorMessage = errorMessages[error] || errorMessages.Default;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -31,9 +23,9 @@ export default function AuthError() {
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
             Authentication Error
           </h2>
-          <div className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            <p>{errorMessage}</p>
-          </div>
+          <Suspense>
+            <ErrorMessage />
+          </Suspense>
         </div>
 
         <div className="space-y-4">

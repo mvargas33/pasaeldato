@@ -3,6 +3,7 @@ import Map from "./components/Map";
 import SearchBox from "./components/SearchBox";
 import ChipFilters from "./components/ChipFilter";
 import TipCard from "./components/TipCard";
+import UsersExample from "./components/UsersExample";
 
 export default function Home() {
   const mockTips = [
@@ -43,6 +44,7 @@ export default function Home() {
             <TipCard key={tip.id} title={tip.title} />
           ))}
         </section>
+        <UsersExample />
       </main>
     </div>
   );

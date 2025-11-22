@@ -5,30 +5,59 @@ import { MapPin, ApiResponse } from "@/types/app";
 import mongoose from "mongoose";
 
 type TipPinDocument = mongoose.HydratedDocument<InstanceType<typeof TipPin>>;
+type TipPinLean = Record<string, unknown>;
 
-function transformTipToMapPin(tip: TipPinDocument): MapPin {
+function transformTipToMapPin(tip: TipPinLean | TipPinDocument): MapPin {
+  const tipObj: Record<string, unknown> = 
+    typeof (tip as TipPinDocument & { toObject?: () => Record<string, unknown> }).toObject === 'function'
+      ? (tip as TipPinDocument & { toObject: () => Record<string, unknown> }).toObject()
+      : tip as Record<string, unknown>;
+  
+  const convertObjectId = (id: unknown): string => {
+    if (!id) return '';
+    if (typeof id === 'string') return id;
+    if (id && typeof id === 'object' && 'toString' in id && typeof id.toString === 'function') {
+      return id.toString();
+    }
+    if (id && typeof id === 'object') {
+      return JSON.stringify(id);
+    }
+    return '';
+  };
+  
+  const convertDate = (date: unknown): string | undefined => {
+    if (!date) return undefined;
+    if (date instanceof Date) return date.toISOString();
+    if (typeof date === 'string') return new Date(date).toISOString();
+    return undefined;
+  };
+  
+  const location = tipObj.location as { point?: { type: 'Point'; coordinates: [number, number] }; radius?: number } | undefined;
+  const comments = Array.isArray(tipObj.comments) ? tipObj.comments : [];
+  const likedBy = Array.isArray(tipObj.likedBy) ? tipObj.likedBy : [];
+  const dislikedBy = Array.isArray(tipObj.dislikedBy) ? tipObj.dislikedBy : [];
+  
   return {
-    id: tip._id?.toString() || '',
-    authorId: tip.authorId?.toString() || '',
-    communityId: tip.communityId?.toString() || '',
-    type: tip.type,
-    title: tip.title,
-    description: tip.description,
+    id: convertObjectId(tipObj._id),
+    authorId: convertObjectId(tipObj.authorId),
+    communityId: convertObjectId(tipObj.communityId),
+    type: (tipObj.type as 'pin') || 'pin',
+    title: (tipObj.title as string) || '',
+    description: (tipObj.description as string) || '',
     location: {
-      point: tip.location?.point || { type: 'Point', coordinates: [0, 0] },
-      radius: tip.location?.radius || 0,
+      point: location?.point || { type: 'Point', coordinates: [0, 0] },
+      radius: location?.radius || 0,
     },
-    address: tip.address || '',
-    picture: tip.picture,
-    colour: tip.colour,
-    startDate: tip.startDate?.toISOString(),
-    duration: tip.duration,
-    contact: tip.contact || {},
-    comments: (tip.comments || []).map((id: mongoose.Types.ObjectId) => id?.toString() || ''),
-    likedBy: (tip.likedBy || []).map((id: mongoose.Types.ObjectId) => id?.toString() || ''),
-    dislikedBy: (tip.dislikedBy || []).map((id: mongoose.Types.ObjectId) => id?.toString() || ''),
-    createdAt: tip.createdAt?.toISOString() || new Date().toISOString(),
-    updatedAt: tip.updatedAt?.toISOString() || new Date().toISOString(),
+    address: (tipObj.address as string) || '',
+    picture: tipObj.picture as string | undefined,
+    colour: tipObj.colour as string | undefined,
+    startDate: convertDate(tipObj.startDate),
+    duration: tipObj.duration as number | undefined,
+    comments: comments.map(convertObjectId),
+    likedBy: likedBy.map(convertObjectId),
+    dislikedBy: dislikedBy.map(convertObjectId),
+    createdAt: convertDate(tipObj.createdAt) || new Date().toISOString(),
+    updatedAt: convertDate(tipObj.updatedAt) || new Date().toISOString(),
   };
 }
 
@@ -96,13 +125,14 @@ export async function GET(request: Request) {
       }
     }
     
-    const pinTips = await TipPin.find(query);
+    const pinTips = await TipPin.find(query).lean();
     
     const pins: MapPin[] = pinTips
       .filter((tip) => tip != null)
       .map((tip) => {
         try {
-          return transformTipToMapPin(tip);
+          const transformedTip = transformTipToMapPin(tip);
+          return transformedTip;
         } catch (transformError) {
           throw new Error(`Failed to transform tip ${tip?._id}: ${transformError instanceof Error ? transformError.message : 'Unknown error'}`);
         }

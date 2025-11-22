@@ -90,11 +90,7 @@ async function seedCommunities(communitiesData: any[], userMap: Map<string, any>
   for (const communityData of communitiesData) {
     const processedData = { ...communityData };
     
-    if (communityData.members && Array.isArray(communityData.members)) {
-      processedData.members = communityData.members
-        .map((email: string) => userMap.get(email)?._id)
-        .filter((id: any) => id !== undefined);
-    }
+    processedData.members = communityData.members.map((email: string) => userMap.get(email)._id);
     
     const community = await Community.create(processedData);
     communityMap.set(communityData.name, community);
@@ -112,33 +108,17 @@ async function seedMessages(messagesData: any[], userMap: Map<string, any>, Mess
   for (const messageData of messagesData) {
     const processedData = { ...messageData };
     
-    if (messageData.authorEmail) {
-      const author = userMap.get(messageData.authorEmail);
-      if (!author) {
-        logging.warn(`Author ${messageData.authorEmail} not found, skipping message`);
-        continue;
-      }
-      processedData.authorId = author._id;
-      delete processedData.authorEmail;
-    }
+    const author = userMap.get(messageData.authorEmail);
+    processedData.authorId = author._id;
+    delete processedData.authorEmail;
     
-    if (messageData.likedBy && Array.isArray(messageData.likedBy)) {
-      processedData.likedBy = messageData.likedBy
-        .map((identifier: string) => {
-          // Try ID first, then email for backward compatibility
-          return (userMap as any).byId?.get(identifier)?._id || userMap.get(identifier)?._id;
-        })
-        .filter((id: any) => id !== undefined);
-    }
+    processedData.likedBy = messageData.likedBy.map((identifier: string) => {
+      return (userMap as any).byId?.get(identifier)?._id || userMap.get(identifier)?._id;
+    });
     
-    if (messageData.dislikedBy && Array.isArray(messageData.dislikedBy)) {
-      processedData.dislikedBy = messageData.dislikedBy
-        .map((identifier: string) => {
-          // Try ID first, then email for backward compatibility
-          return (userMap as any).byId?.get(identifier)?._id || userMap.get(identifier)?._id;
-        })
-        .filter((id: any) => id !== undefined);
-    }
+    processedData.dislikedBy = messageData.dislikedBy.map((identifier: string) => {
+      return (userMap as any).byId?.get(identifier)?._id || userMap.get(identifier)?._id;
+    });
     
     const message = await Message.create(processedData);
     messageMap.set(messageData.id || message._id.toString(), message);
@@ -152,53 +132,31 @@ async function seedTips(tipsData: any[], userMap: Map<string, any>, communityMap
   logging.info(`Seeding ${tipsData.length} tips...`);
   
   for (const tipData of tipsData) {
-    const processedData = { ...tipData };
+    const author = (userMap as any).byId.get(tipData.authorId);
+    const community = communityMap.get(tipData.communityId);
     
-    if (tipData.authorEmail) {
-      const author = userMap.get(tipData.authorEmail);
-      if (!author) {
-        logging.warn(`Author ${tipData.authorEmail} not found, skipping tip`);
-        continue;
-      }
-      processedData.authorId = author._id;
-      delete processedData.authorEmail;
-    }
+    const processedData: any = {
+      authorId: author._id,
+      communityId: community._id,
+      type: tipData.type,
+      title: tipData.title,
+      description: tipData.description,
+      comments: (tipData.comments || []).map((commentId: string) => messageMap.get(commentId)._id),
+      likedBy: (tipData.likedBy || []).map((identifier: string) => {
+        return (userMap as any).byId.get(identifier)?._id || userMap.get(identifier)?._id;
+      }),
+      dislikedBy: (tipData.dislikedBy || []).map((identifier: string) => {
+        return (userMap as any).byId.get(identifier)?._id || userMap.get(identifier)?._id;
+      }),
+    };
     
-    if (tipData.communityName) {
-      const community = communityMap.get(tipData.communityName);
-      if (!community) {
-        logging.warn(`Community ${tipData.communityName} not found, skipping tip`);
-        continue;
-      }
-      processedData.communityId = community._id;
-      delete processedData.communityName;
-    }
-    
-    if (tipData.comments && Array.isArray(tipData.comments)) {
-      processedData.comments = tipData.comments
-        .map((commentId: string) => {
-          const message = messageMap.get(commentId);
-          return message ? message._id : null;
-        })
-        .filter((id: any) => id !== null);
-    }
-    
-    if (tipData.likedBy && Array.isArray(tipData.likedBy)) {
-      processedData.likedBy = tipData.likedBy
-        .map((identifier: string) => {
-          // Try ID first, then email for backward compatibility
-          return (userMap as any).byId?.get(identifier)?._id || userMap.get(identifier)?._id;
-        })
-        .filter((id: any) => id !== undefined);
-    }
-    
-    if (tipData.dislikedBy && Array.isArray(tipData.dislikedBy)) {
-      processedData.dislikedBy = tipData.dislikedBy
-        .map((identifier: string) => {
-          // Try ID first, then email for backward compatibility
-          return (userMap as any).byId?.get(identifier)?._id || userMap.get(identifier)?._id;
-        })
-        .filter((id: any) => id !== undefined);
+    if (tipData.type === 'pin') {
+      processedData.location = tipData.location;
+      processedData.address = tipData.address;
+      if (tipData.picture) processedData.picture = tipData.picture;
+      if (tipData.colour) processedData.colour = tipData.colour;
+      if (tipData.startDate) processedData.startDate = new Date(tipData.startDate);
+      if (tipData.duration !== undefined) processedData.duration = tipData.duration;
     }
     
     await Tip.create(processedData);

@@ -17,7 +17,77 @@ export const getS3Url = (s3Key?: string): string | undefined => {
 };
 
 /**
- * Converts a File object to a base64 string
+ * Compresses an image file and converts it to base64
+ * @param file - The image file to compress
+ * @param maxWidth - Maximum width (default: 800px)
+ * @param maxHeight - Maximum height (default: 800px)
+ * @param quality - JPEG quality 0-1 (default: 0.8)
+ * @returns Compressed image as base64 string
+ */
+export const compressAndConvertImage = (
+  file: File,
+  maxWidth: number = 800,
+  maxHeight: number = 800,
+  quality: number = 0.8
+): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const img = new Image();
+
+      img.onload = () => {
+        // Calculate new dimensions while maintaining aspect ratio
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          const aspectRatio = width / height;
+
+          if (width > height) {
+            width = maxWidth;
+            height = width / aspectRatio;
+          } else {
+            height = maxHeight;
+            width = height * aspectRatio;
+          }
+        }
+
+        // Create canvas and draw compressed image
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+
+        // Use better image rendering
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to base64 (use JPEG for better compression, PNG for transparency)
+        const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        const base64 = canvas.toDataURL(mimeType, quality);
+
+        resolve(base64);
+      };
+
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = e.target?.result as string;
+    };
+
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+};
+
+/**
+ * Converts a File object to a base64 string (without compression)
+ * @deprecated Use compressAndConvertImage for better performance
  */
 export const convertFileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {

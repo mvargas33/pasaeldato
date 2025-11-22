@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MapPin, LocationModel, MapPinType, PinSubtype } from '@/types/app';
-import { convertFileToBase64 } from '@/app/services/s3';
+import { compressAndConvertImage } from '@/app/services/s3';
 import { generateBackgroundImage } from '@/app/services/imageGeneration';
 import { getAvailableCategories, getCategoryColor } from '@/app/utils/categoryColors';
 
@@ -58,52 +58,62 @@ const PinCreationForm: React.FC<PinCreationFormProps> = ({ location, onSave, onC
       // Get the color based on the selected category
       const categoryColor = getCategoryColor(formData.subtype as PinSubtype);
 
-      // Step 1: Generate AI background from description
-      console.log('Generating AI background image...');
-      const backgroundImage = await generateBackgroundImage(formData.description.trim());
+      // Generate background and prepare user picture upload in parallel
+      console.log('Generating AI background and preparing uploads...');
+
+      const [backgroundImage, userImageBase64] = await Promise.all([
+        generateBackgroundImage(formData.description.trim()),
+        pictureFile ? compressAndConvertImage(pictureFile, 800, 800, 0.85) : Promise.resolve(null),
+      ]);
 
       if (!backgroundImage.b64_json) {
         throw new Error('Error al generar imagen de fondo');
       }
 
-      // Upload background to pins/background_image/
-      const backgroundResponse = await fetch('/api/s3', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename: `pins/background_image/${uniqueId}.png`,
-          imageBase64: `data:image/png;base64,${backgroundImage.b64_json}`,
-        }),
-      });
-
-      if (!backgroundResponse.ok) {
-        throw new Error('Error al subir imagen de fondo');
-      }
-
-      const backgroundResult = await backgroundResponse.json();
-      const backgroundImageUrl = backgroundResult.s3Key;
-      console.log('Background uploaded:', backgroundImageUrl);
-
-      // Step 2: Upload user picture if provided
-      let pictureUrl = '';
-      if (pictureFile) {
-        console.log('Uploading user picture...');
-        const imageBase64 = await convertFileToBase64(pictureFile);
-
-        const imageResponse = await fetch('/api/s3', {
+      // Upload both images in parallel
+      console.log('Uploading images to S3...');
+      const uploadPromises = [
+        fetch('/api/s3', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            filename: `pins/image/${uniqueId}.png`,
-            imageBase64,
+            filename: `pins/background_image/${uniqueId}.png`,
+            imageBase64: `data:image/png;base64,${backgroundImage.b64_json}`,
           }),
-        });
+        }),
+      ];
 
-        if (!imageResponse.ok) {
+      // Add user picture upload if provided
+      if (userImageBase64) {
+        uploadPromises.push(
+          fetch('/api/s3', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: `pins/image/${uniqueId}.png`,
+              imageBase64: userImageBase64,
+            }),
+          })
+        );
+      }
+
+      const responses = await Promise.all(uploadPromises);
+
+      // Check responses
+      if (!responses[0].ok) {
+        throw new Error('Error al subir imagen de fondo');
+      }
+
+      const backgroundResult = await responses[0].json();
+      const backgroundImageUrl = backgroundResult.s3Key;
+      console.log('Background uploaded:', backgroundImageUrl);
+
+      let pictureUrl = '';
+      if (responses[1]) {
+        if (!responses[1].ok) {
           throw new Error('Error al subir imagen del usuario');
         }
-
-        const imageResult = await imageResponse.json();
+        const imageResult = await responses[1].json();
         pictureUrl = imageResult.s3Key;
         console.log('User image uploaded:', pictureUrl);
       }

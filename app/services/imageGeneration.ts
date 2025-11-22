@@ -74,10 +74,11 @@ const generateGradientColors = (seed: string): { color1: string; color2: string 
 };
 
 /**
- * Generates a 3000x1000 gradient background image from a description
+ * Generates a 1200x400 gradient background image from a description
  * Creates cool gradient patterns based on the description text
+ * Optimized size for faster generation and upload
  * @param description - Text description to seed the gradient
- * @returns Generated background image data (3000x1000) as base64
+ * @returns Generated background image data (1200x400) as base64
  * @throws Error if generation fails
  */
 export const generateBackgroundImage = async (description: string): Promise<GeneratedImage> => {
@@ -88,10 +89,10 @@ export const generateBackgroundImage = async (description: string): Promise<Gene
   try {
     const { color1, color2 } = generateGradientColors(description);
 
-    // Create canvas
+    // Create canvas with optimized size
     const canvas = document.createElement('canvas');
-    canvas.width = 3000;
-    canvas.height = 1000;
+    canvas.width = 1200;
+    canvas.height = 400;
     const ctx = canvas.getContext('2d');
 
     if (!ctx) {
@@ -106,34 +107,34 @@ export const generateBackgroundImage = async (description: string): Promise<Gene
 
     switch (gradientType) {
       case 0: // Linear diagonal
-        gradient = ctx.createLinearGradient(0, 0, 3000, 1000);
+        gradient = ctx.createLinearGradient(0, 0, 1200, 400);
         break;
       case 1: // Linear horizontal
-        gradient = ctx.createLinearGradient(0, 0, 3000, 0);
+        gradient = ctx.createLinearGradient(0, 0, 1200, 0);
         break;
       case 2: // Radial from center
-        gradient = ctx.createRadialGradient(1500, 500, 0, 1500, 500, 1200);
+        gradient = ctx.createRadialGradient(600, 200, 0, 600, 200, 480);
         break;
       case 3: // Radial from corner
-        gradient = ctx.createRadialGradient(0, 0, 0, 1500, 500, 1800);
+        gradient = ctx.createRadialGradient(0, 0, 0, 600, 200, 720);
         break;
       default:
-        gradient = ctx.createLinearGradient(0, 0, 3000, 1000);
+        gradient = ctx.createLinearGradient(0, 0, 1200, 400);
     }
 
     gradient.addColorStop(0, color1);
     gradient.addColorStop(1, color2);
 
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 3000, 1000);
+    ctx.fillRect(0, 0, 1200, 400);
 
-    // Add some visual interest with shapes
-    const shapeCount = 3 + (hash % 5);
+    // Add some visual interest with shapes (optimized)
+    const shapeCount = 2 + (hash % 3); // Reduced from 3-8 to 2-5 shapes
     for (let i = 0; i < shapeCount; i++) {
       const shapeHash = hash + i * 1000;
-      const x = (shapeHash * 13) % 3000;
-      const y = (shapeHash * 17) % 1000;
-      const size = 150 + ((shapeHash * 7) % 400);
+      const x = (shapeHash * 13) % 1200;
+      const y = (shapeHash * 17) % 400;
+      const size = 60 + ((shapeHash * 7) % 150); // Smaller shapes
       const opacity = 0.1 + ((shapeHash % 20) / 100);
 
       ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
@@ -155,7 +156,7 @@ export const generateBackgroundImage = async (description: string): Promise<Gene
 
     return {
       b64_json: base64,
-      size: '3000x1000',
+      size: '1200x400',
       type: 'gradient',
     };
   } catch (error) {

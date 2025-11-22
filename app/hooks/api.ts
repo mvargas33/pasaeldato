@@ -72,6 +72,8 @@ const tipsApi = {
       },
       colour: pinData.formData.colour,
       picture: pinData.formData.picture || "",
+      background_image: pinData.formData.background_image || "",
+      tags: [],
       contact: {},
       comments: [],
       likedBy: [],

@@ -37,10 +37,47 @@ export const base64ToFile = (base64Data: string, filename: string = 'generated-i
 };
 
 /**
- * Generates a 1024x1024 background image from a description (DALL-E 2 max resolution)
- * Note: DALL-E 2 supports 256x256, 512x512, and 1024x1024 only
- * @param description - Text description of the background scene
- * @returns Generated background image data (1024x1024)
+ * Generates a gradient color based on a seed string
+ * @param seed - String to generate consistent colors from
+ * @returns Object with two hex colors for gradient
+ */
+const generateGradientColors = (seed: string): { color1: string; color2: string } => {
+  // Create a simple hash from the seed string
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  // Generate vibrant colors
+  const hue1 = Math.abs(hash % 360);
+  const hue2 = (hue1 + 60 + Math.abs(hash % 120)) % 360; // Complementary hue
+
+  const saturation = 70 + (Math.abs(hash % 30)); // 70-100%
+  const lightness = 50 + (Math.abs(hash % 20)); // 50-70%
+
+  // Convert HSL to hex
+  const hslToHex = (h: number, s: number, l: number): string => {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = (n: number) => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  };
+
+  return {
+    color1: hslToHex(hue1, saturation, lightness),
+    color2: hslToHex(hue2, saturation, lightness),
+  };
+};
+
+/**
+ * Generates a 3000x1000 gradient background image from a description
+ * Creates cool gradient patterns based on the description text
+ * @param description - Text description to seed the gradient
+ * @returns Generated background image data (3000x1000) as base64
  * @throws Error if generation fails
  */
 export const generateBackgroundImage = async (description: string): Promise<GeneratedImage> => {
@@ -49,21 +86,78 @@ export const generateBackgroundImage = async (description: string): Promise<Gene
   }
 
   try {
-    const response = await fetch('/api/generate-background', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ description: description.trim() }),
-    });
+    const { color1, color2 } = generateGradientColors(description);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to generate background image');
+    // Create canvas
+    const canvas = document.createElement('canvas');
+    canvas.width = 3000;
+    canvas.height = 1000;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Could not get canvas context');
     }
 
-    const result = await response.json();
-    return result.data;
+    // Determine gradient type based on description hash
+    const hash = description.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const gradientType = hash % 4;
+
+    let gradient;
+
+    switch (gradientType) {
+      case 0: // Linear diagonal
+        gradient = ctx.createLinearGradient(0, 0, 3000, 1000);
+        break;
+      case 1: // Linear horizontal
+        gradient = ctx.createLinearGradient(0, 0, 3000, 0);
+        break;
+      case 2: // Radial from center
+        gradient = ctx.createRadialGradient(1500, 500, 0, 1500, 500, 1200);
+        break;
+      case 3: // Radial from corner
+        gradient = ctx.createRadialGradient(0, 0, 0, 1500, 500, 1800);
+        break;
+      default:
+        gradient = ctx.createLinearGradient(0, 0, 3000, 1000);
+    }
+
+    gradient.addColorStop(0, color1);
+    gradient.addColorStop(1, color2);
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 3000, 1000);
+
+    // Add some visual interest with shapes
+    const shapeCount = 3 + (hash % 5);
+    for (let i = 0; i < shapeCount; i++) {
+      const shapeHash = hash + i * 1000;
+      const x = (shapeHash * 13) % 3000;
+      const y = (shapeHash * 17) % 1000;
+      const size = 150 + ((shapeHash * 7) % 400);
+      const opacity = 0.1 + ((shapeHash % 20) / 100);
+
+      ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+      ctx.beginPath();
+
+      if (i % 2 === 0) {
+        // Circle
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+      } else {
+        // Square
+        ctx.rect(x - size / 2, y - size / 2, size, size);
+      }
+
+      ctx.fill();
+    }
+
+    // Convert to base64
+    const base64 = canvas.toDataURL('image/png').split(',')[1];
+
+    return {
+      b64_json: base64,
+      size: '3000x1000',
+      type: 'gradient',
+    };
   } catch (error) {
     console.error('Background image generation error:', error);
     throw error instanceof Error ? error : new Error('Unknown error during background generation');

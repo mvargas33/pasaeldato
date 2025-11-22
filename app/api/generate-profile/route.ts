@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       response_format: 'b64_json',
     });
 
-    if (!result.data[0]?.b64_json) {
+    if (!result.data || !result.data[0]?.b64_json) {
       throw new Error('No image data received from OpenAI');
     }
 

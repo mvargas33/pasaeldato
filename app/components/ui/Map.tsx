@@ -3,7 +3,6 @@
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
-import { uploadPictureToS3 } from "@/app/services/s3";
 import { useCreatePin } from "@/app/hooks/api";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -174,17 +173,67 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
     if (!clickedLocation) return;
 
     try {
-      // Step 1: Upload picture if provided
+      // Generate unique ID for this pin
+      const uniqueId = `pin_${Date.now()}`;
+
+      // Step 1: Generate AI background from description
+      console.log('Generating AI background image...');
+      const { generateBackgroundImage } = await import('@/app/services/imageGeneration');
+      const { convertFileToBase64 } = await import('@/app/services/s3');
+
+      const backgroundImage = await generateBackgroundImage(formData.description.trim());
+
+      if (!backgroundImage.b64_json) {
+        throw new Error('Failed to generate background image');
+      }
+
+      // Upload background to pins/background_image/
+      const backgroundResponse = await fetch('/api/s3', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: `pins/background_image/${uniqueId}.png`,
+          imageBase64: `data:image/png;base64,${backgroundImage.b64_json}`,
+        }),
+      });
+
+      if (!backgroundResponse.ok) {
+        throw new Error('Failed to upload background image');
+      }
+
+      const backgroundResult = await backgroundResponse.json();
+      const backgroundImageUrl = backgroundResult.s3Key;
+      console.log('Background uploaded:', backgroundImageUrl);
+
+      // Step 2: Upload user picture if provided
       let pictureUrl = "";
       if (formData.picture && formData.picture.size > 0) {
         try {
-          pictureUrl = await uploadPictureToS3(formData.picture);
+          console.log('Uploading user picture...');
+          const imageBase64 = await convertFileToBase64(formData.picture);
+
+          const imageResponse = await fetch('/api/s3', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: `pins/image/${uniqueId}.png`,
+              imageBase64,
+            }),
+          });
+
+          if (!imageResponse.ok) {
+            throw new Error('Failed to upload user image');
+          }
+
+          const imageResult = await imageResponse.json();
+          pictureUrl = imageResult.s3Key;
+          console.log('User image uploaded:', pictureUrl);
         } catch {
           alert("Picture upload failed, but pin will be created without image");
         }
       }
 
-      // Step 2: Add marker to map
+      // Step 3: Add marker to map
       const popupHTML = createPopupHTML(
         formData.title,
         formData.description,
@@ -200,7 +249,7 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
         return;
       }
 
-      // Step 3: Save to database using React Query
+      // Step 4: Save to database using React Query
       try {
         await createPinMutation.mutateAsync({
           formData: {
@@ -209,6 +258,7 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
             address: formData.address,
             colour: "#ef4444",
             picture: pictureUrl,
+            background_image: backgroundImageUrl,
           },
           location: {
             lng: clickedLocation.lng,
@@ -223,7 +273,7 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
         alert(`Pin created on map but failed to save: ${errorMessage}`);
       }
 
-      // Step 4: Reset states
+      // Step 5: Reset states
       setShowForm(false);
       setClickedLocation(null);
       setIsCreatingPin(false);

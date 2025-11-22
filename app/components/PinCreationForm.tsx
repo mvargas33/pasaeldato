@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MapPin, LocationModel, MapPinType } from '@/types/app';
-import { uploadPictureToS3 } from '@/app/services/s3';
+import { convertFileToBase64 } from '@/app/services/s3';
+import { generateBackgroundImage } from '@/app/services/imageGeneration';
 
 interface PinCreationFormProps {
   location: LocationModel;
@@ -41,20 +42,66 @@ const PinCreationForm: React.FC<PinCreationFormProps> = ({ location, onSave, onC
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.title.trim() || !formData.description.trim() || !formData.address.trim()) {
       alert('Please fill in all required fields');
       return;
     }
 
     setIsUploading(true);
-    
+
     try {
+      // Generate unique ID for this pin
+      const uniqueId = `pin_${Date.now()}`;
+
+      // Step 1: Generate AI background from description
+      console.log('Generating AI background image...');
+      const backgroundImage = await generateBackgroundImage(formData.description.trim());
+
+      if (!backgroundImage.b64_json) {
+        throw new Error('Failed to generate background image');
+      }
+
+      // Upload background to pins/background_image/
+      const backgroundResponse = await fetch('/api/s3', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: `pins/background_image/${uniqueId}.png`,
+          imageBase64: `data:image/png;base64,${backgroundImage.b64_json}`,
+        }),
+      });
+
+      if (!backgroundResponse.ok) {
+        throw new Error('Failed to upload background image');
+      }
+
+      const backgroundResult = await backgroundResponse.json();
+      const backgroundImageUrl = backgroundResult.s3Key;
+      console.log('Background uploaded:', backgroundImageUrl);
+
+      // Step 2: Upload user picture if provided
       let pictureUrl = '';
-      
-      // Upload picture to S3 if provided
       if (pictureFile) {
-        pictureUrl = await uploadPictureToS3(pictureFile);
+        console.log('Uploading user picture...');
+        const imageBase64 = await convertFileToBase64(pictureFile);
+
+        const imageResponse = await fetch('/api/s3', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: `pins/image/${uniqueId}.png`,
+            imageBase64,
+          }),
+        });
+
+        if (!imageResponse.ok) {
+          throw new Error('Failed to upload user image');
+        }
+
+        const imageResult = await imageResponse.json();
+        pictureUrl = imageResult.s3Key;
+        console.log('User image uploaded:', pictureUrl);
       }
 
       const pinData: Omit<MapPin, 'id' | 'createdAt' | 'updatedAt'> = {
@@ -66,6 +113,7 @@ const PinCreationForm: React.FC<PinCreationFormProps> = ({ location, onSave, onC
         location,
         address: formData.address.trim(),
         picture: pictureUrl || undefined,
+        background_image: backgroundImageUrl,
         colour: formData.colour,
         tags: [],
         contact: {},

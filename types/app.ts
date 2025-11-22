@@ -141,8 +141,7 @@ export interface MapPin {
   title: string;
   description: string; // Main content for MVP (replaces contact and dynamic fields)
   tags: string[]; // Tags for categorization and search
-  background_image?: string; // Optional background image URL
-  
+
   // Location Details
   location: LocationModel; // Embedded Location information
   address: string; // Single address field (replaces street + municipality)

@@ -15,6 +15,15 @@
   --color-secondary: #F9E7B2;
   --color-third: #DDC57A;
   --color-details: #CE7E5A;
+
+  --color-chip-1: #A1BC98;
+  --color-chip-2: #AAC4F5;
+  --color-chip-3: #E9B63B;
+  --color-chip-4: #B77466;
+  --color-chip-5: #FFA4A4;
+  --color-chip-6: #A7AAE1;
+  --color-chip-7: #F08787;
+  --color-chip-8: #98A1BC; 
 }
 
 @media (prefers-color-scheme: dark) {

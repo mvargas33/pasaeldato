@@ -42,13 +42,14 @@ const Pin: React.FC<PinProps> = ({ pin, onClick }) => {
     <Marker
       latitude={pin.location.point.coordinates[1]}
       longitude={pin.location.point.coordinates[0]}
-      anchor="bottom"
-      onClick={(e) => {
-        e.originalEvent.stopPropagation();
-        onClick?.(pin);
-      }}
     >
-      <div className={`${getIconColor(pin.type)} transition-transform duration-100 hover:scale-125 cursor-pointer shadow-md rounded-full`}>
+      <div 
+        className={`${getIconColor(pin.type)} transition-transform duration-100 hover:scale-125 cursor-pointer shadow-md rounded-full`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick?.(pin);
+        }}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="30"

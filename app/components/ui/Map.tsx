@@ -4,11 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import { uploadPictureToS3 } from "@/app/services/s3";
-import {
-  savePinToDatabase,
-  type PinFormData,
-  type PinLocation,
-} from "@/app/services/pins";
+import { useCreatePin } from "@/app/hooks/api";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -34,6 +30,9 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
     lat: number;
   } | null>(null);
   const [showForm, setShowForm] = useState(false);
+
+  // React Query hook for creating pins
+  const createPinMutation = useCreatePin();
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -109,7 +108,7 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
     // Test marker to verify marker functionality works
     map.on("load", () => {
       console.log("Map loaded, adding test marker...");
-      const testMarker = new mapboxgl.Marker({ color: "#00ff00" })
+      new mapboxgl.Marker({ color: "#00ff00" })
         .setLngLat([-70.6009, -33.4173])
         .setPopup(
           new mapboxgl.Popup().setHTML(
@@ -180,7 +179,7 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
       if (formData.picture && formData.picture.size > 0) {
         try {
           pictureUrl = await uploadPictureToS3(formData.picture);
-        } catch (error) {
+        } catch {
           alert("Picture upload failed, but pin will be created without image");
         }
       }
@@ -201,22 +200,22 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
         return;
       }
 
-      // Step 3: Save to database
+      // Step 3: Save to database using React Query
       try {
-        await savePinToDatabase(
-          {
+        await createPinMutation.mutateAsync({
+          formData: {
             title: formData.title,
             description: formData.description,
             address: formData.address,
             colour: "#ef4444",
             picture: pictureUrl,
           },
-          {
+          location: {
             lng: clickedLocation.lng,
             lat: clickedLocation.lat,
             radius: 100,
-          }
-        );
+          },
+        });
         alert("Pin created and saved successfully!");
       } catch (error) {
         const errorMessage =

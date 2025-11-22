@@ -44,7 +44,6 @@ export default function Home() {
             <TipCard key={tip.id} title={tip.title} />
           ))}
         </section>
-        <Map />
         <UsersExample />
       </main>
     </div>

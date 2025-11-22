@@ -9,9 +9,7 @@ export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   const handleSignOut = async () => {
-    console.log("Signing out...");
     await signOut({ callbackUrl: "/auth/signin" });
-    console.log("huh?");
   };
 
   return (
@@ -30,7 +28,7 @@ export default function Header() {
         alt="Pasa el dato"
         width={200}
         height={70}
-        className="absolute left-1/2 transform -translate-x-1/2"
+        className="absolute left-1/2 transform -translate-x-1/2 md:w-[300px] w-[200px]"
       />
       {session && (
         <div className="relative">

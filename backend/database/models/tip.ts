@@ -98,6 +98,12 @@ const TipPinSchema = new mongoose.Schema({
     trim: true,
     maxlength: 500,
   },
+  subtype: {
+    type: String,
+    enum: ["Service", "Business", "Event"],
+    required: false,
+    index: true,
+  },
   picture: {
     type: String,
     trim: true,

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import Image from "next/image";
 import { useCreatePin } from "@/app/hooks/api";
+import { PinSubtype } from "@/types/app";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -237,6 +238,7 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
     title: string;
     description: string;
     address: string;
+    subtype?: PinSubtype;
     picture?: File;
   }) => {
     if (!clickedLocation) return;
@@ -325,6 +327,7 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
             title: formData.title,
             description: formData.description,
             address: formData.address,
+            subtype: formData.subtype,
             colour: "#ef4444",
             picture: pictureUrl,
             background_image: backgroundImageUrl,
@@ -424,6 +427,7 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
                 const title = formData.get("title") as string;
                 const description = formData.get("description") as string;
                 const address = formData.get("address") as string;
+                const subtype = formData.get("subtype") as string;
                 const pictureFile = formData.get("picture") as File;
 
                 console.log("Form data extracted:");
@@ -459,6 +463,7 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
                   title: title.trim(),
                   description: description?.trim() || "",
                   address: address.trim(),
+                  subtype: subtype ? (subtype as PinSubtype) : undefined,
                   picture:
                     pictureFile && pictureFile.size > 0
                       ? pictureFile
@@ -498,6 +503,20 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
                   className="w-full p-3 border-2 border-gray-800 rounded-lg text-gray-900"
                   placeholder="Enter address"
                 />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Subtype (optional)
+                </label>
+                <select
+                  name="subtype"
+                  className="w-full p-3 border-2 border-gray-800 rounded-lg text-gray-900"
+                >
+                  <option value="">None</option>
+                  <option value={PinSubtype.SERVICE}>Service</option>
+                  <option value={PinSubtype.BUSINESS}>Business</option>
+                  <option value={PinSubtype.EVENT}>Event</option>
+                </select>
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-semibold text-gray-900 mb-2">

@@ -129,6 +129,12 @@ export enum MapPinType {
   LANDMARK = 'landmark',
   RESIDENTIAL = 'residential',
 }
+
+export enum PinSubtype {
+  SERVICE = 'Service',
+  BUSINESS = 'Business',
+  EVENT = 'Event',
+}
 /**
  * Represents a single dynamic pin placed on the map by a user (Point of Interest).
  * Aligned with TipPinSchema MongoDB model.
@@ -140,6 +146,7 @@ export interface MapPin {
   
   // Pin Attributes
   type: MapPinType; // Discriminator type for TipPin
+  subtype?: PinSubtype; // Subtype classification: Service, Business, or Event
   title: string;
   description: string; // Main content for MVP (replaces contact and dynamic fields)
   tags: string[]; // Tags for categorization and search

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, LocationModel, MapPinType } from '@/types/app';
+import { MapPin, LocationModel, MapPinType, PinSubtype } from '@/types/app';
 import { convertFileToBase64 } from '@/app/services/s3';
 import { generateBackgroundImage } from '@/app/services/imageGeneration';
 
@@ -14,6 +14,7 @@ const PinCreationForm: React.FC<PinCreationFormProps> = ({ location, onSave, onC
     title: '',
     description: '',
     address: '',
+    subtype: '' as PinSubtype | '',
     picture: '',
     colour: '#ef4444', // Default red color
   });
@@ -108,6 +109,7 @@ const PinCreationForm: React.FC<PinCreationFormProps> = ({ location, onSave, onC
         authorId: 'current-user', // TODO: Get from auth context
         communityId: 'default-community', // TODO: Get from context or props
         type: MapPinType.PIN,
+        subtype: formData.subtype || undefined,
         title: formData.title.trim(),
         description: formData.description.trim(),
         location,
@@ -187,6 +189,24 @@ const PinCreationForm: React.FC<PinCreationFormProps> = ({ location, onSave, onC
                 maxLength={500}
                 required
               />
+            </div>
+
+            {/* Subtype */}
+            <div>
+              <label htmlFor="subtype" className="block text-base font-semibold text-gray-900 mb-2">
+                Subtype (optional)
+              </label>
+              <select
+                id="subtype"
+                value={formData.subtype}
+                onChange={(e) => setFormData({ ...formData, subtype: e.target.value as PinSubtype | '' })}
+                className="w-full px-4 py-3 bg-white border-2 border-gray-800 text-gray-900 text-base rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">None</option>
+                <option value={PinSubtype.SERVICE}>Service</option>
+                <option value={PinSubtype.BUSINESS}>Business</option>
+                <option value={PinSubtype.EVENT}>Event</option>
+              </select>
             </div>
 
             {/* Picture Upload */}

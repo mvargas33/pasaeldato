@@ -2,12 +2,13 @@
  * Pins Service - Handles pin operations with MongoDB
  */
 
-import { MapPin, MapPinType } from '@/types/app';
+import { MapPin, MapPinType, PinSubtype } from '@/types/app';
 
 export interface PinFormData {
   title: string;
   description: string;
   address: string;
+  subtype?: PinSubtype;
   colour: string;
   picture?: string;
   background_image?: string;
@@ -47,6 +48,7 @@ export const savePinToDatabase = async (
     title: formData.title,
     description: formData.description || 'No description provided',
     address: formData.address,
+    subtype: formData.subtype,
     location: {
       point: {
         type: 'Point' as const,

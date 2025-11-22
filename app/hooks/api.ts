@@ -65,6 +65,7 @@ const tipsApi = {
       title: pinData.formData.title,
       description: pinData.formData.description || "No description provided",
       address: pinData.formData.address,
+      subtype: pinData.formData.subtype,
       location: {
         point: {
           type: "Point" as const,

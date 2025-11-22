@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { initializeMongoDb } from "@/backend/database/connection";
 import { Tip, TipPin, TipText, Community } from "@/backend/database/models";
-import { MapPin, TextTip, MapPinType } from "@/types/app";
+import { MapPin, TextTip, MapPinType, PinSubtype } from "@/types/app";
 import mongoose from "mongoose";
 
 type TipPinDocument = mongoose.HydratedDocument<InstanceType<typeof TipPin>>;
@@ -45,6 +45,7 @@ function transformTipToMapPin(tip: TipPinLean | TipPinDocument): MapPin {
     authorId: convertObjectId(tipObj.authorId),
     communityId: convertObjectId(tipObj.communityId),
     type: (tipObj.type as MapPinType) || MapPinType.PIN,
+    subtype: tipObj.subtype ? (tipObj.subtype as PinSubtype) : undefined,
     title: (tipObj.title as string) || '',
     description: (tipObj.description as string) || '',
     tags,

@@ -155,6 +155,7 @@ async function seedTips(tipsData: any[], userMap: Map<string, any>, communityMap
     if (tipData.type === 'pin') {
       processedData.location = tipData.location;
       processedData.address = tipData.address;
+      if (tipData.subtype) processedData.subtype = tipData.subtype;
       if (tipData.picture) processedData.picture = tipData.picture;
       if (tipData.colour) processedData.colour = tipData.colour;
       if (tipData.startDate) processedData.startDate = new Date(tipData.startDate);

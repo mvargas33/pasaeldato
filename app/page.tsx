@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white z-50 px-6 py-4 flex justify-between items-center" style={{ borderBottom: '2px solid #000' }}>
+      <header className="fixed top-0 left-0 right-0 bg-white z-50 px-6 py-4 flex justify-between items-center" style={{ borderBottom: '1px solid #000' }}>
         <Image
           src="/web-app-manifest-512x512.png"
           alt="Pasa el dato"
@@ -36,7 +36,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex flex-col pt-24 px-6 pb-6 gap-6">
         {/* Search and Filters Section */}
-        <section className="flex flex-col gap-4">
+        <section className="flex flex-col gap-4 mt-3">
           <SearchBox />
           <ChipFilters />
         </section>
@@ -47,7 +47,7 @@ export default function Home() {
         </section>
 
         {/* Tips List Section */}
-        <section className="flex flex-col gap-4">
+        <section className="flex flex-col gap-4 mt-3">
           {mockTips.map((tip) => (
             <TipCard key={tip.id} title={tip.title} />
           ))}

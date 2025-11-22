@@ -3,6 +3,20 @@
  */
 
 /**
+ * Constructs the full S3 URL for a given S3 key
+ * Uses the Next.js API route to serve S3 images
+ * @param s3Key - S3 key like "pins/image/pin_123.png"
+ * @returns Full URL to access the image, or undefined if no key
+ */
+export const getS3Url = (s3Key?: string): string | undefined => {
+  if (!s3Key) return undefined;
+  // If it's already a full URL, return it
+  if (s3Key.startsWith('http')) return s3Key;
+  // Use the Next.js API route to serve the image
+  return `/api/s3?key=${encodeURIComponent(s3Key)}`;
+};
+
+/**
  * Converts a File object to a base64 string
  */
 export const convertFileToBase64 = (file: File): Promise<string> => {

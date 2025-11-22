@@ -42,13 +42,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Missing 'key' parameter" }, { status: 400 });
     }
 
-    // Prepend 'icons/' if not already present and if it's just a filename
-    const iconKey = key.startsWith("icons/") ? key : `icons/${key}`;
+    // Determine the S3 key:
+    // - For pins (pins/image/*, pins/background_image/*): use key as-is
+    // - For icons without folder: prepend 'icons/' for backwards compatibility
+    const s3Key = (key.startsWith('pins/') || key.includes('/')) ? key : `icons/${key}`;
 
     // Command to get the PNG image from S3
     const getCommand = new GetObjectCommand({
       Bucket: BUCKET_NAME,
-      Key: iconKey,
+      Key: s3Key,
     });
 
     try {
@@ -89,9 +91,9 @@ export async function GET(request: Request) {
       // Fallback: Generate a signed URL if direct access fails
       const signedUrl = await getSignedUrl(s3Client, getCommand, { expiresIn: 3600 });
       
-      return NextResponse.json({ 
-        key: iconKey, 
-        signedUrl, 
+      return NextResponse.json({
+        key: s3Key,
+        signedUrl,
         source: "signed-url",
         message: "Direct access failed, returning signed URL"
       }, { status: 200 });

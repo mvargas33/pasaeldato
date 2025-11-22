@@ -4,6 +4,7 @@ import { LngLatBounds } from "mapbox-gl";
 import MapComponent from "../ui/Map";
 import { useMapData } from "../../hooks/api";
 import { MapPin } from "@/types/app";
+import { getS3Url } from "../../services/s3";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Suspense } from "react";
@@ -15,6 +16,8 @@ interface MapComponentMarker {
   longitude: number;
   latitude: number;
   color: string;
+  picture?: string;
+  authorAvatar?: string;
 }
 
 /**
@@ -27,6 +30,8 @@ const parseMapDataToMarkers = (mapPins: MapPin[]): MapComponentMarker[] => {
     longitude: pin.location.point.coordinates[0], // GeoJSON format: [longitude, latitude]
     latitude: pin.location.point.coordinates[1],
     color: pin.colour || "#9ECAD6", // Default color if not provided
+    picture: getS3Url(pin.picture), // Convert S3 key to accessible URL
+    authorAvatar: undefined, // TODO: Get from author data when user authentication is implemented
   }));
 };
 

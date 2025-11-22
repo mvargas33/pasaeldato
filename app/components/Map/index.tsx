@@ -106,7 +106,7 @@ const Map = () => {
   // Loading state
   if (isLoading) {
     return (
-      <div className="w-80 h-80 bg-gray-100 animate-pulse rounded flex items-center justify-center">
+      <div className="w-full h-full bg-gray-100 animate-pulse rounded flex items-center justify-center">
         <div className="text-gray-500">Loading map data...</div>
       </div>
     );

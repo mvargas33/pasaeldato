@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/axios";
+import { MapPin } from "@/types/app";
 
 // Example types - replace with your actual data types
 interface User {
@@ -13,6 +14,12 @@ interface Post {
   title: string;
   content: string;
   userId: string;
+}
+
+interface MapResponse {
+  data: MapPin[];
+  success?: boolean;
+  error?: string;
 }
 
 // API functions
@@ -31,6 +38,10 @@ const postApi = {
   getPost: (id: string): Promise<Post> => api.get(`/posts/${id}`),
   createPost: (postData: Omit<Post, "id">): Promise<Post> =>
     api.post("/posts", postData),
+};
+
+const mapApi = {
+  getMapData: (): Promise<MapResponse> => api.get("/map"),
 };
 
 // React Query hooks for users
@@ -114,5 +125,15 @@ export const useCreatePost = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
+  });
+};
+
+// React Query hooks for map
+export const useMapData = () => {
+  return useQuery({
+    queryKey: ["map"],
+    queryFn: mapApi.getMapData,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };

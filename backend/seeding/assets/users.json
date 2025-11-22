@@ -1,37 +1,51 @@
 [
   {
     "id": "user1",
-    "name": "Juan Pérez",
-    "email": "juan@example.com"
+    "email": "juan@example.com",
+    "latitude": -33.4180,
+    "longitude": -70.6020,
+    "interests": ["Local services", "Videogames"]
   },
   {
     "id": "user2",
-    "name": "María González",
-    "email": "maria@example.com"
+    "email": "maria@example.com",
+    "latitude": -33.4560,
+    "longitude": -70.5950,
+    "interests": ["Markets", "Cafes", "Eventos"]
   },
   {
     "id": "user3",
-    "name": "Carlos Silva",
-    "email": "carlos@example.com"
+    "email": "carlos@example.com",
+    "latitude": -33.4173,
+    "longitude": -70.6009,
+    "interests": ["Local services", "Eventos"]
   },
   {
     "id": "user4",
-    "name": "Ana Muñoz",
-    "email": "ana@example.com"
+    "email": "ana@example.com",
+    "latitude": -33.4500,
+    "longitude": -70.5900,
+    "interests": ["Eventos", "Markets", "Local services"]
   },
   {
     "id": "user5",
-    "name": "Luis Torres",
-    "email": "luis@example.com"
+    "email": "luis@example.com",
+    "latitude": -33.4150,
+    "longitude": -70.5550,
+    "interests": ["Local services", "Videogames"]
   },
   {
     "id": "user6",
-    "name": "Diego Ramírez",
-    "email": "diego@example.com"
+    "email": "diego@example.com",
+    "latitude": -33.4190,
+    "longitude": -70.6025,
+    "interests": ["Eventos", "Videogames"]
   },
   {
     "id": "user7",
-    "name": "Camila Herrera",
-    "email": "camila@example.com"
+    "email": "camila@example.com",
+    "latitude": -33.4520,
+    "longitude": -70.5920,
+    "interests": ["Local services"]
   }
 ]

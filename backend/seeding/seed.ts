@@ -82,9 +82,17 @@ async function seedUserPreferences(userPreferencesData: any[], UserPreferences: 
     };
     
     const userPreference = await UserPreferences.create(processedData);
+    
+    // Store by ID for tips lookup
     if (userPreferenceData.id) {
       userPreferencesByIdMap.set(userPreferenceData.id, userPreference);
     }
+    
+    // Store by email for messages lookup (backward compatibility)
+    if (userPreferenceData.email) {
+      userPreferencesMap.set(userPreferenceData.email, userPreference);
+    }
+    
     logging.info(`Created user preference: ${userPreferenceData.id || userPreference._id}`);
   }
   

@@ -14,11 +14,66 @@ type Marker = {
   longitude: number;
   latitude: number;
   color: string;
+  picture?: string; // Pin image from form
+  authorAvatar?: string; // User profile picture
 };
 
 type Props = {
   markers?: Marker[];
   onChangeBounds?: (newBounds: mapboxgl.LngLatBounds) => void;
+};
+
+/**
+ * Creates popup HTML content with image, title, and description
+ * @param marker - Marker data including optional image URLs
+ * @returns HTML string for popup content
+ */
+const createPopupContent = (marker: Marker): string => {
+  const imageUrl = marker.picture || marker.authorAvatar;
+
+  const imageHtml = imageUrl
+    ? `<img src="${imageUrl}" alt="${marker.title}" style="
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        display: block;
+      " />`
+    : '';
+
+  // Truncate description if longer than 20 characters
+  const truncatedDescription = marker.description.length > 20
+    ? marker.description.substring(0, 20) + '. . .'
+    : marker.description;
+
+  return `
+    <div style="
+      max-width: 280px;
+      max-height: 400px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    ">
+      ${imageHtml}
+      <h3 style="
+        margin: 0 0 8px 0;
+        font-size: 16px;
+        font-weight: bold;
+        line-height: 1.4;
+      ">${marker.title}</h3>
+      <a style="
+        margin: 0;
+        font-size: 14px;
+        color: #2563eb;
+        line-height: 1.5;
+        display: block;
+        text-decoration: underline;
+        cursor: pointer;
+        font-weight: 600;
+        transition: color 0.2s;
+      " onmouseover="this.style.color='#1d4ed8'" onmouseout="this.style.color='#2563eb'">${truncatedDescription}</a>
+    </div>
+  `;
 };
 
 const Map = ({ markers = [], onChangeBounds }: Props) => {
@@ -81,13 +136,26 @@ const Map = ({ markers = [], onChangeBounds }: Props) => {
     });
 
     markers.forEach((marker) => {
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-        `<strong>${marker.title}</strong><p>${marker.description}</p>`
-      );
+      // Create popup with image, title, and description
+      // Configure offset to position popup to the right and slightly above the marker
+      const popup = new mapboxgl.Popup({
+        offset: {
+          'top': [0, 0],
+          'top-left': [0, 0],
+          'top-right': [0, 0],
+          'bottom': [0, -40],
+          'bottom-left': [25, -40],
+          'bottom-right': [-25, -40],
+          'left': [10, -20],
+          'right': [-10, -20]
+        },
+        closeButton: true,
+        closeOnClick: true,
+        maxWidth: '300px'
+      }).setHTML(createPopupContent(marker));
 
-      new mapboxgl.Marker({
-        color: marker.color,
-      })
+      // Use default colored marker
+      new mapboxgl.Marker({ color: marker.color })
         .setLngLat([marker.longitude, marker.latitude])
         .setPopup(popup)
         .addTo(map);

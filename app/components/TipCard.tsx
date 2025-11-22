@@ -36,7 +36,7 @@ export default function TipCard({ avatar, title }: TipCardProps) {
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path d="M16 22C15.3 22 14.7 21.7 14.3 21.2L8.3 13.2C7.5 12.1 8.3 10.5 9.7 10.5H22.3C23.7 10.5 24.5 12.1 23.7 13.2L17.7 21.2C17.3 21.7 16.7 22 16 22Z" fill="#D34E4E" stroke="#D34E4E" strokeWidth="1" strokeLinejoin="round"/>
+          <path d="M16 22C15.3 22 14.7 21.7 14.3 21.2L8.3 13.2C7.5 12.1 8.3 10.5 9.7 10.5H22.3C23.7 10.5 24.5 12.1 23.7 13.2L17.7 21.2C17.3 21.7 16.7 22 16 22Z" fill="#CE7E5A" stroke="#CE7E5A" strokeWidth="1" strokeLinejoin="round"/>
         </svg>
       </button>
     </div>

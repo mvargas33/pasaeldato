@@ -1,7 +1,99 @@
 import { NextResponse } from "next/server";
 import { initializeMongoDb } from "@/backend/database/connection";
 import { Tip, TipPin, TipText, Community } from "@/backend/database/models";
+import { MapPin, TextTip, MapPinType } from "@/types/app";
 import mongoose from "mongoose";
+
+type TipPinDocument = mongoose.HydratedDocument<InstanceType<typeof TipPin>>;
+type TipTextDocument = mongoose.HydratedDocument<InstanceType<typeof TipText>>;
+type TipPinLean = Record<string, unknown>;
+type TipTextLean = Record<string, unknown>;
+
+function convertObjectId(id: unknown): string {
+  if (!id) return '';
+  if (typeof id === 'string') return id;
+  if (id && typeof id === 'object' && 'toString' in id && typeof id.toString === 'function') {
+    return id.toString();
+  }
+  if (id && typeof id === 'object') {
+    return JSON.stringify(id);
+  }
+  return '';
+}
+
+function convertDate(date: unknown): string {
+  if (!date) return new Date().toISOString();
+  if (date instanceof Date) return date.toISOString();
+  if (typeof date === 'string') return new Date(date).toISOString();
+  return new Date().toISOString();
+}
+
+function transformTipToMapPin(tip: TipPinLean | TipPinDocument): MapPin {
+  const tipObj: Record<string, unknown> = 
+    typeof (tip as TipPinDocument & { toObject?: () => Record<string, unknown> }).toObject === 'function'
+      ? (tip as TipPinDocument & { toObject: () => Record<string, unknown> }).toObject()
+      : tip as Record<string, unknown>;
+  
+  const location = tipObj.location as { point?: { type: 'Point'; coordinates: [number, number] }; radius?: number } | undefined;
+  const comments = Array.isArray(tipObj.comments) ? tipObj.comments : [];
+  const likedBy = Array.isArray(tipObj.likedBy) ? tipObj.likedBy : [];
+  const dislikedBy = Array.isArray(tipObj.dislikedBy) ? tipObj.dislikedBy : [];
+  const tags = Array.isArray(tipObj.tags) ? tipObj.tags.filter((tag): tag is string => typeof tag === 'string') : [];
+  
+  return {
+    id: convertObjectId(tipObj._id),
+    authorId: convertObjectId(tipObj.authorId),
+    communityId: convertObjectId(tipObj.communityId),
+    type: (tipObj.type as MapPinType) || MapPinType.PIN,
+    title: (tipObj.title as string) || '',
+    description: (tipObj.description as string) || '',
+    tags,
+    background_image: tipObj.background_image as string | undefined,
+    location: {
+      point: location?.point || { type: 'Point', coordinates: [0, 0] },
+      radius: location?.radius || 0,
+    },
+    address: (tipObj.address as string) || '',
+    picture: tipObj.picture as string | undefined,
+    colour: tipObj.colour as string | undefined,
+    startDate: convertDate(tipObj.startDate),
+    duration: tipObj.duration as number | undefined,
+    contact: (tipObj.contact as { phone?: string; instagram?: string; tiktok?: string; facebook?: string }) || {},
+    comments: comments.map(convertObjectId),
+    likedBy: likedBy.map(convertObjectId),
+    dislikedBy: dislikedBy.map(convertObjectId),
+    createdAt: convertDate(tipObj.createdAt),
+    updatedAt: convertDate(tipObj.updatedAt),
+  };
+}
+
+function transformTipToTipText(tip: TipTextLean | TipTextDocument): TextTip {
+  const tipObj: Record<string, unknown> = 
+    typeof (tip as TipTextDocument & { toObject?: () => Record<string, unknown> }).toObject === 'function'
+      ? (tip as TipTextDocument & { toObject: () => Record<string, unknown> }).toObject()
+      : tip as Record<string, unknown>;
+  
+  const comments = Array.isArray(tipObj.comments) ? tipObj.comments : [];
+  const likedBy = Array.isArray(tipObj.likedBy) ? tipObj.likedBy : [];
+  const dislikedBy = Array.isArray(tipObj.dislikedBy) ? tipObj.dislikedBy : [];
+  const tags = Array.isArray(tipObj.tags) ? tipObj.tags.filter((tag): tag is string => typeof tag === 'string') : [];
+  
+  return {
+    id: convertObjectId(tipObj._id),
+    authorId: convertObjectId(tipObj.authorId),
+    communityId: convertObjectId(tipObj.communityId),
+    type: 'text' as const,
+    title: (tipObj.title as string) || '',
+    description: (tipObj.description as string) || '',
+    tags,
+    background_image: tipObj.background_image as string | undefined,
+    comments: comments.map(convertObjectId),
+    likedBy: likedBy.map(convertObjectId),
+    dislikedBy: dislikedBy.map(convertObjectId),
+    createdAt: convertDate(tipObj.createdAt),
+    updatedAt: convertDate(tipObj.updatedAt),
+  };
+}
 
 export async function GET(request: Request) {
   try {
@@ -68,9 +160,12 @@ export async function GET(request: Request) {
         communityIds: communityIds.map((id) => new mongoose.Types.ObjectId(id)),
       });
 
+      const pins: MapPin[] = result.pins.map((pin) => transformTipToMapPin(pin));
+      const nonPins: TextTip[] = result.nonPins.map((nonPin) => transformTipToTipText(nonPin));
+
       return NextResponse.json({
-        pins: result.pins,
-        nonPins: result.nonPins,
+        pins,
+        nonPins,
       });
     }
     

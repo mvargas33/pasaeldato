@@ -30,13 +30,14 @@ const Content = ({ id }: Props) => {
           boxShadow: "3px 3px 0px rgba(0, 0, 0, 0.7)",
           lineHeight: 1.1,
           minHeight: 0,
+          borderBottom: !tipData.background_image ? "2px solid #000" : undefined,
         }}
       >
         {tipData.background_image ? (
           <img
             src={tipData.background_image}
             alt="Portada"
-            style={{ objectFit: "cover", borderBottom: "2px solid #000" }}
+            style={{ objectFit: "cover", width: "100%", height: "100%", borderRadius: "0 0 0.5rem 0.5rem" }}
             className="rounded-b-lg"
           />
         ) : (
@@ -44,7 +45,8 @@ const Content = ({ id }: Props) => {
             className="absolute top-0 left-0 w-full h-full rounded-b-lg"
             style={{
               background: "var(--color-primary)",
-              border: "1.5px solid rgb(0, 0, 0)",
+              border: "2px solid #000",
+              borderTop: 0,
             }}
           />
         )}
@@ -73,29 +75,10 @@ const Content = ({ id }: Props) => {
               />
             )}
           </div>
-          <div className="ml-6 mt-6 flex flex-col">
+          <div className="ml-6 mt-6 flex flex-col py-5">
             <h1 className="text-lg md:text-3xl font-bold text-[var(--foreground)] drop-shadow-sm">
               {tipData.title}
             </h1>
-            <button
-              onClick={() => setJoined((prev) => !prev)}
-              className={
-                `mt-2 px-2 py-0.5 rounded-full text-xs font-medium transition-all w-fit ` +
-                (joined
-                  ? "bg-[var(--color-chip-3)]"
-                  : "bg-[var(--color-chip-4)]")
-              }
-              style={{
-                color: "var(--foreground)",
-                fontFamily: "Helvetica Neue, Helvetica, Arial, sans-serif",
-                border: "1.5px solid rgb(0, 0, 0)",
-                boxShadow: "3px 3px 0px rgba(0, 0, 0, 0.7)",
-                lineHeight: 1.1,
-                minHeight: 0,
-              }}
-            >
-              {joined ? "Soy Parte!" : "Unirse"}
-            </button>
           </div>
         </div>
       </div>

@@ -3,19 +3,35 @@
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const { data: session } = useSession();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const router = useRouter();
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/auth/signin" });
   };
 
+  const handleHeaderClick = (e: React.MouseEvent) => {
+    // Prevent click from toggling user menu if clicking on user button
+    // or user menu
+    const target = e.target as HTMLElement;
+    if (
+      target.closest("button") ||
+      target.closest("[role='menu']")
+    ) {
+      return;
+    }
+    router.push("/");
+  };
+
   return (
     <header
-      className="fixed top-0 left-0 right-0 bg-white z-50 px-6 py-4 flex justify-between items-center"
+      className="fixed top-0 left-0 right-0 bg-white z-50 px-6 py-4 flex justify-between items-center cursor-pointer"
       style={{ borderBottom: "1px solid #000" }}
+      onClick={handleHeaderClick}
     >
       <Image
         src="/web-app-manifest-512x512.png"
@@ -34,7 +50,10 @@ export default function Header() {
       {session && (
         <div className="relative">
           <button
-            onClick={() => setShowUserMenu(!showUserMenu)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowUserMenu((v) => !v);
+            }}
             className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-2"
           >
             {session.user?.image ? (
@@ -54,7 +73,7 @@ export default function Header() {
           </button>
 
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200">
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200" role="menu">
               <div className="py-2">
                 <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
                   <p className="font-medium">{session.user?.name}</p>

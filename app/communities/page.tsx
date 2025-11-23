@@ -106,14 +106,39 @@ function CommunityCard({ avatarUrl, portadaUrl, title, isPartOf: initialIsPartOf
 }
 
 const Communities = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = () => {
+    setIsSubmitting(true);
+    // Simulate async action
+    setTimeout(() => setIsSubmitting(false), 1200);
+  };
+
   return (
-    <div className="px-2 py-4 mt-24">
+    <div className="px-2 py-4 mt-24 flex flex-col min-h-[80vh]">
       <h1 className="font-bold text-lg mb-4">🌳 Mis comunidades</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4">
         {communities.map((c, idx) => (
           <CommunityCard key={idx} {...c} />
         ))}
       </div>
+      <div className="flex-grow" />
+      {/* Submit Button */}
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={isSubmitting}
+        className="w-full py-4 rounded-lg font-semibold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+        style={{
+          backgroundColor: "var(--color-third)",
+          border: "1.5px solid rgb(0, 0, 0)",
+          boxShadow: "3px 3px 0px rgba(0, 0, 0, 0.7)",
+          fontFamily: "Helvetica Neue, Helvetica, Arial, sans-serif",
+          color: "var(--foreground)",
+        }}
+      >
+        {isSubmitting ? "Enviando..." : "¡Vamos!"}
+      </button>
     </div>
   );
 };

@@ -105,12 +105,20 @@ const tipsApi = {
   getTips: (
     search?: string,
     longitudeParam?: number,
-    latitudeParam?: number
+    latitudeParam?: number,
+    allowedSubtypes?: string[],
+    isCommunityMode?: boolean
   ): Promise<GetTipsResponse> => {
     const params: Record<string, string | number> = {};
     if (search) params.search = search;
     if (longitudeParam !== undefined) params.longitude = longitudeParam;
     if (latitudeParam !== undefined) params.latitude = latitudeParam;
+    if (allowedSubtypes !== undefined) {
+      params.allowedSubtypes = allowedSubtypes.join(",");
+    }
+    if (isCommunityMode !== undefined) {
+      params.isCommunityMode = isCommunityMode ? "true" : "false";
+    }
 
     return api.get("/tips", { params });
   },
@@ -298,14 +306,18 @@ export const useGetTips = ({
   search,
   longitude,
   latitude,
+  allowedSubtypes,
+  isCommunityMode,
 }: {
   search?: string;
   longitude?: number;
   latitude?: number;
+  allowedSubtypes?: string[];
+  isCommunityMode?: boolean;
 }) => {
   return useQuery({
-    queryKey: ["tips", { search, longitude, latitude }],
-    queryFn: () => tipsApi.getTips(search, longitude, latitude),
+    queryKey: ["tips", { search, longitude, latitude, allowedSubtypes, isCommunityMode }],
+    queryFn: () => tipsApi.getTips(search, longitude, latitude, allowedSubtypes, isCommunityMode),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     placeholderData: (previousData) => previousData, // Keep previous data while fetching

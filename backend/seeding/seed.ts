@@ -65,6 +65,7 @@ async function seedUserPreferences(userPreferencesData: any[], UserPreferences: 
   
   const userPreferencesMap = new Map<string, any>();
   const userPreferencesByIdMap = new Map<string, any>();
+  const mongoose = await import("mongoose");
   
   for (const userPreferenceData of userPreferencesData) {
     // Check if data has the required fields for UserPreferences
@@ -75,13 +76,49 @@ async function seedUserPreferences(userPreferencesData: any[], UserPreferences: 
       continue;
     }
     
-    const processedData = {
-      latitude: userPreferenceData.latitude,
-      longitude: userPreferenceData.longitude,
-      interests: userPreferenceData.interests || [],
-    };
+    let userPreference;
     
-    const userPreference = await UserPreferences.create(processedData);
+    // Check if we've already created a UserPreferences with this ID
+    if (userPreferenceData.id) {
+      try {
+        const existingId = new mongoose.Types.ObjectId(userPreferenceData.id);
+        userPreference = await UserPreferences.findById(existingId);
+        
+        if (userPreference) {
+          logging.info(`User preference with id ${userPreferenceData.id} already exists, reusing it`);
+        } else {
+          // Create new UserPreferences with explicit _id
+          const processedData: any = {
+            _id: existingId,
+            latitude: userPreferenceData.latitude,
+            longitude: userPreferenceData.longitude,
+            interests: userPreferenceData.interests || [],
+          };
+          
+          userPreference = await UserPreferences.create(processedData);
+          logging.info(`Created user preference: ${userPreferenceData.id}`);
+        }
+      } catch (error) {
+        logging.warn(`Invalid id format for user preference ${userPreferenceData.id || userPreferenceData.email || 'unknown'}, generating new ID`);
+        // Fall through to create without explicit _id
+        const processedData: any = {
+          latitude: userPreferenceData.latitude,
+          longitude: userPreferenceData.longitude,
+          interests: userPreferenceData.interests || [],
+        };
+        userPreference = await UserPreferences.create(processedData);
+        logging.info(`Created user preference with generated ID: ${userPreference._id}`);
+      }
+    } else {
+      // No ID provided, create with generated ID
+      const processedData: any = {
+        latitude: userPreferenceData.latitude,
+        longitude: userPreferenceData.longitude,
+        interests: userPreferenceData.interests || [],
+      };
+      userPreference = await UserPreferences.create(processedData);
+      logging.info(`Created user preference with generated ID: ${userPreference._id}`);
+    }
     
     // Store by ID for tips lookup
     if (userPreferenceData.id) {
@@ -92,8 +129,6 @@ async function seedUserPreferences(userPreferencesData: any[], UserPreferences: 
     if (userPreferenceData.email) {
       userPreferencesMap.set(userPreferenceData.email, userPreference);
     }
-    
-    logging.info(`Created user preference: ${userPreferenceData.id || userPreference._id}`);
   }
   
   // Store both maps in the returned map for backward compatibility

@@ -74,6 +74,7 @@ function transformTipToMapPin(tip: TipPinLean | TipPinDocument): MapPin {
     address: (tipObj.address as string) || "",
     picture: tipObj.picture as string | undefined,
     colour: tipObj.colour as string | undefined,
+    icon: tipObj.icon as string | undefined,
     startDate: convertDate(tipObj.startDate),
     duration: tipObj.duration as number | undefined,
     contact:

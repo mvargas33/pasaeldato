@@ -18,6 +18,9 @@ const Content = ({ id }: Props) => {
   const { data: tipData, isLoading, error } = useGetTipById(id);
 
   if (!tipData) return <div>Cargando...</div>;
+  const tip = tipData;
+  const color = "colour" in tip ? tip.colour : "var(--color-primary)";
+  const backgroundImage = "background_image" in tip ? tip.background_image : null;
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
@@ -30,26 +33,17 @@ const Content = ({ id }: Props) => {
           boxShadow: "3px 3px 0px rgba(0, 0, 0, 0.7)",
           lineHeight: 1.1,
           minHeight: 0,
-          borderBottom: !tipData.background_image ? "2px solid #000" : undefined,
+          borderBottom: !backgroundImage ? "2px solid #000" : undefined,
         }}
       >
-        {false ? (
-          <img
-            src={tipData.background_image}
-            alt="Portada"
-            style={{ objectFit: "cover", width: "100%", height: "100%", borderRadius: "0 0 0.5rem 0.5rem" }}
-            className="rounded-b-lg"
-          />
-        ) : (
-          <div
-            className="absolute top-0 left-0 w-full h-full rounded-b-lg"
-            style={{
-              background: tipData!.colour ?? "var(--color-primary)",
-              border: "2px solid #000",
-              borderTop: 0,
-            }}
-          />
-        )}
+        <div
+          className="absolute top-0 left-0 w-full h-full rounded-b-lg"
+          style={{
+            background: color,
+            border: "2px solid #000",
+            borderTop: 0,
+          }}
+        />
         <div className="absolute left-4 bottom-[-80px] flex items-end">
           <div
             className="w-28 h-28 md:w-40 md:h-40 rounded-full bg-white border-0 border-[var(--background)] shadow-lg overflow-hidden relative z-10"
@@ -60,9 +54,9 @@ const Content = ({ id }: Props) => {
               minHeight: 0,
             }}
           >
-            {tipData.background_image ? (
+            {backgroundImage ? (
               <img
-                src={tipData.background_image}
+                src={backgroundImage}
                 alt="Avatar"
                 width={160}
                 height={160}
@@ -78,7 +72,7 @@ const Content = ({ id }: Props) => {
           </div>
           <div className="ml-6 mt-6 flex flex-col py-5">
             <h1 className="text-lg md:text-3xl font-bold text-[var(--foreground)] drop-shadow-sm">
-              {tipData.title}
+              {tip.title}
             </h1>
           </div>
         </div>
@@ -88,13 +82,13 @@ const Content = ({ id }: Props) => {
       {/* Description */}
       <div className="px-4 md:px-8 py-2">
         <p className="text-[var(--foreground)] text-base whitespace-pre-line">
-          {tipData.description}
+          {tip.description}
         </p>
       </div>
       {/* Map section */}
-      {tipData.type !== "text" && (
+      {tip.type !== "text" && (
         <div className="mx-4 md:mx-8 my-2 h-[400px] rounded-lg overflow-hidden">
-          <Map pins={[tipData]} />
+          <Map pins={[tip]} />
         </div>
       )}
       {/* Discussions section */}
@@ -118,7 +112,7 @@ const Content = ({ id }: Props) => {
           </button>
         </div>
         <div className="flex flex-col gap-4">
-          {tipData.comments.map((comment, idx) => (
+          {tip.comments.map((comment, idx) => (
             <Suspense key={comment} fallback={<Loader />}>
               <DiscussionCard discussion={comment} />
             </Suspense>

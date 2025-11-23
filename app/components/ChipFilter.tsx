@@ -44,7 +44,6 @@ export default function ChipFilters() {
   const allFilters = [
     { label: "Servicios", colorClass: "bg-[var(--color-chip-3)]" },
     { label: "Eventos", colorClass: "bg-[var(--color-chip-2)]" },
-    { label: "Comunidades", colorClass: "bg-[var(--color-chip-4)]" },
     { label: "Negocios", colorClass: "bg-[var(--color-chip-1)]" },
   ];
 
@@ -52,9 +51,7 @@ export default function ChipFilters() {
   const handleToggle = (value: boolean) => setChecked(value);
 
   // Determine which filters to show
-  const visibleFilters = checked
-    ? allFilters.filter(f => f.label !== "Comunidades")
-    : allFilters.filter(f => f.label === "Comunidades");
+  const visibleFilters = allFilters;
 
   return (
     <div className="w-full flex flex-wrap gap-0 space-between items-center">
@@ -68,7 +65,18 @@ export default function ChipFilters() {
           />
         ))}
       </div>
-      <div className="w-1/2 flex justify-end">
+      <div className="w-1/2 flex justify-end items-center gap-2">
+        {!checked && (
+          <span style={{
+            fontWeight: 600,
+            color: '#1a1a1a',
+            fontSize: '1.1em',
+            marginRight: '8px',
+            whiteSpace: 'nowrap',
+          }}>
+            Modo Comunidad 🌳
+          </span>
+        )}
         <ToggleSwitch label="" checked={checked} onChange={handleToggle} height="48px" />
       </div>
     </div>

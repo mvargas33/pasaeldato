@@ -42,9 +42,10 @@ export function ChipFilter({ label, colorClass, subtype, isActive, onToggle }: C
 
 type ChipFiltersProps = {
   onActiveSubtypesChange?: (activeSubtypes: string[]) => void;
+  onIsCommunityModeChange?: (isCommunityMode: boolean) => void;
 };
 
-export default function ChipFilters({ onActiveSubtypesChange }: ChipFiltersProps) {
+export default function ChipFilters({ onActiveSubtypesChange, onIsCommunityModeChange }: ChipFiltersProps) {
   const allFilters = [
     { label: "Servicios", colorClass: "bg-[var(--color-chip-3)]", subtype: PinSubtype.SERVICE },
     { label: "Eventos", colorClass: "bg-[var(--color-chip-2)]", subtype: PinSubtype.EVENT },
@@ -58,7 +59,10 @@ export default function ChipFilters({ onActiveSubtypesChange }: ChipFiltersProps
     [PinSubtype.BUSINESS]: false,
   });
 
-  const handleToggle = (value: boolean) => setChecked(value);
+  const handleToggle = (value: boolean) => {
+    setChecked(value);
+    onIsCommunityModeChange?.(!value);
+  };
 
   const handleFilterToggle = (subtype: PinSubtype, active: boolean) => {
     setActiveFilters((prev) => ({
@@ -73,6 +77,10 @@ export default function ChipFilters({ onActiveSubtypesChange }: ChipFiltersProps
       .map(([subtype]) => subtype);
     onActiveSubtypesChange?.(activeSubtypes);
   }, [activeFilters, onActiveSubtypesChange]);
+
+  useEffect(() => {
+    onIsCommunityModeChange?.(!checked);
+  }, [checked, onIsCommunityModeChange]);
 
   // Determine which filters to show
   const visibleFilters = allFilters;

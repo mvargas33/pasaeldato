@@ -9,6 +9,7 @@ const Main = () => {
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [activeSubtypes, setActiveSubtypes] = useState<string[]>([]);
+  const [isCommunityMode, setIsCommunityMode] = useState<boolean>(false);
 
   const hasActiveSearch = search !== null && search.trim() !== "";
 
@@ -23,6 +24,7 @@ const Main = () => {
     ...(latitude && { latitude }),
     ...(longitude && { longitude }),
     allowedSubtypes: activeSubtypes,
+    isCommunityMode,
   });
 
   console.log("Tips data:", tipsData?.nonPins);
@@ -40,6 +42,10 @@ const Main = () => {
     setActiveSubtypes(subtypes);
   }, []);
 
+  const handleIsCommunityModeChange = useCallback((value: boolean) => {
+    setIsCommunityMode(value);
+  }, []);
+
   return (
     <Content
       mapPins={tipsData?.pins || []}
@@ -47,6 +53,7 @@ const Main = () => {
       onChangeMapCenter={onChangeMapCenter}
       onChangeSearch={handleChangeSearch}
       onActiveSubtypesChange={handleActiveSubtypesChange}
+      onIsCommunityModeChange={handleIsCommunityModeChange}
     />
   );
 };

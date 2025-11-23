@@ -10,6 +10,7 @@ type Props = {
   onChangeMapCenter: ComponentProps<typeof Map>["onChangeCenter"];
   onChangeSearch: (value: string) => void;
   onActiveSubtypesChange: (activeSubtypes: string[]) => void;
+  onIsCommunityModeChange: (isCommunityMode: boolean) => void;
 };
 
 const Content = ({
@@ -18,6 +19,7 @@ const Content = ({
   onChangeMapCenter,
   onChangeSearch,
   onActiveSubtypesChange,
+  onIsCommunityModeChange,
 }: Props) => (
   <main
     className="flex flex-col pt-24 px-6 pb-6 gap-6"
@@ -26,7 +28,10 @@ const Content = ({
     {/* Search and Filters Section */}
     <section className="flex flex-col gap-4 mt-3">
       <SearchBox onChange={onChangeSearch} />
-      <ChipFilters onActiveSubtypesChange={onActiveSubtypesChange} />
+      <ChipFilters 
+        onActiveSubtypesChange={onActiveSubtypesChange}
+        onIsCommunityModeChange={onIsCommunityModeChange}
+      />
     </section>
 
     {/* Map Section */}

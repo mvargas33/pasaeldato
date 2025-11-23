@@ -11,7 +11,8 @@ export function DiscussionCard({ discussion }: { discussion: string }) {
   return (
     <div
       className="rounded-lg shadow-md border border-gray-300 bg-white"
-      style={{ boxShadow: "3px 3px 0px rgba(0,0,0,0.7)" }}
+      style={{ boxShadow: "3px 3px 0px rgba(0,0,0,0.7)", cursor: "pointer" }}
+      onClick={() => setExpanded((v) => !v)}
     >
       <div className="flex items-center px-3 py-2">
         {/* Avatar */}
@@ -38,8 +39,7 @@ export function DiscussionCard({ discussion }: { discussion: string }) {
           </p>
         </div>
         {/* Dropdown Button */}
-        <button
-          onClick={() => setExpanded((v) => !v)}
+        <div
           className="flex-shrink-0 w-10 h-10 flex items-center justify-center transition-transform"
           style={{ transform: expanded ? "rotate(0deg)" : "rotate(90deg)" }}
         >
@@ -52,7 +52,7 @@ export function DiscussionCard({ discussion }: { discussion: string }) {
               strokeLinejoin="round"
             />
           </svg>
-        </button>
+        </div>
       </div>
       {expanded && (
         <MessageList

@@ -199,14 +199,17 @@ const Map = ({ markers = [], onChangeCenter }: Props) => {
     const map = mapRef.current;
     if (!map || !isMapLoaded) return;
 
-    // Use the new markers if available, otherwise keep the last valid markers
-    // This prevents flickering when data is being fetched
-    const markersToUse =
-      markers.length > 0 ? markers : lastValidMarkersRef.current;
+    // Always use the current markers prop - if it's empty, show no markers
+    // Only fall back to lastValidMarkersRef if markers is undefined (shouldn't happen with default prop)
+    const markersToUse = markers;
 
-    // Update lastValidMarkersRef if we have new valid data
+    // Update lastValidMarkersRef only when we have valid (non-empty) data
+    // This preserves markers during initial load, but allows empty arrays to clear the map
     if (markers.length > 0) {
       lastValidMarkersRef.current = markers;
+    } else {
+      // Clear the cache when we receive an empty array to prevent fallback
+      lastValidMarkersRef.current = [];
     }
 
     // Create a Set of current marker IDs from the data we're using

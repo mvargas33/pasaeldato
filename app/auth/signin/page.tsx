@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Suspense } from "react";
 import SignInForm from "./SignIn";
+import Loader from "@/app/components/Loader";
 
 export default function SignInPage() {
   return (
@@ -15,20 +16,22 @@ export default function SignInPage() {
             className="mx-auto"
           />
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Welcome to Pasa el Dato
+            Bienvenido/a a Pasa el Dato
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Sign in to discover and share local tips
+            Inicia sesión para descubrir y compartir consejos e intereses en tu
+            comunidad.
           </p>
         </div>
 
-        <Suspense fallback={<div className="text-center">Loading...</div>}>
+        <Suspense fallback={<Loader />}>
           <SignInForm />
         </Suspense>
 
         <div className="text-center">
           <p className="text-xs text-gray-500">
-            By signing in, you agree to our Terms of Service and Privacy Policy
+            Al iniciar sesión, aceptas nuestros Términos de Servicio y Política
+            de Privacidad
           </p>
         </div>
       </div>

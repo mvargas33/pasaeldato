@@ -17,20 +17,20 @@ export default function Header() {
       className="fixed top-0 left-0 right-0 bg-white z-50 px-6 py-4 flex justify-between items-center"
       style={{ borderBottom: "1px solid #000" }}
     >
-        <Image
-          src="/web-app-manifest-512x512.png"
-          alt="Pasa el dato"
-          width={48}
-          height={48}
-        />
-        <Image
-          src="/header-min.png"
-          alt="Pasa el dato"
-          width={200}
-          height={70}
-          className="absolute left-1/2 transform -translate-x-1/2 md:w-[300px] w-[200px]"
-        />
-        <div className="w-12"></div>
+      <Image
+        src="/web-app-manifest-512x512.png"
+        alt="Pasa el dato"
+        width={48}
+        height={48}
+      />
+      <Image
+        src="/header-min.png"
+        alt="Pasa el dato"
+        width={200}
+        height={70}
+        className="absolute left-1/2 transform -translate-x-1/2 md:w-[300px] w-[200px]"
+      />
+      <div className="w-12"></div>
       {session && (
         <div className="relative">
           <button
@@ -66,7 +66,7 @@ export default function Header() {
                   onClick={handleSignOut}
                   className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                 >
-                  Sign Out
+                  Cerrar sesión
                 </button>
               </div>
             </div>

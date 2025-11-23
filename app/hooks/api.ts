@@ -31,6 +31,10 @@ interface GetTipsResponse {
   nonPins: TextTip[];
 }
 
+interface GetUserAvatarResponse {
+  image: string;
+}
+
 // API functions
 const userPreferencesApi = {
   getUserPreferences: (): Promise<UserPreferences[]> =>
@@ -89,12 +93,16 @@ const tipsApi = {
   getTips: (
     search?: string,
     longitudeParam?: number,
-    latitudeParam?: number
+    latitudeParam?: number,
+    allowedSubtypes?: string[]
   ): Promise<GetTipsResponse> => {
     const params: Record<string, string | number> = {};
     if (search) params.search = search;
     if (longitudeParam !== undefined) params.longitude = longitudeParam;
     if (latitudeParam !== undefined) params.latitude = latitudeParam;
+    if (allowedSubtypes !== undefined) {
+      params.allowedSubtypes = allowedSubtypes.join(",");
+    }
 
     return api.get("/tips", { params });
   },
@@ -111,6 +119,11 @@ const communitiesApi = {
 
     return api.get("/communities", { params });
   },
+};
+
+const usersApi = {
+  getAvatar: (id: string): Promise<GetUserAvatarResponse> =>
+    api.get(`/users/${id}`),
 };
 
 /**
@@ -270,14 +283,16 @@ export const useGetTips = ({
   search,
   longitude,
   latitude,
+  allowedSubtypes,
 }: {
   search?: string;
   longitude?: number;
   latitude?: number;
+  allowedSubtypes?: string[];
 }) => {
   return useQuery({
-    queryKey: ["tips", { search, longitude, latitude }],
-    queryFn: () => tipsApi.getTips(search, longitude, latitude),
+    queryKey: ["tips", { search, longitude, latitude, allowedSubtypes }],
+    queryFn: () => tipsApi.getTips(search, longitude, latitude, allowedSubtypes),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     placeholderData: (previousData) => previousData, // Keep previous data while fetching
@@ -297,5 +312,15 @@ export const useGetCommunities = ({
     queryFn: () => communitiesApi.getCommunities(longitude, latitude),
     staleTime: 10 * 60 * 1000, // 10 minutes
     gcTime: 15 * 60 * 1000, // 15 minutes
+  });
+};
+
+export const useGetUserAvatar = (id: string) => {
+  return useQuery({
+    queryKey: ["users", id, "avatar"],
+    queryFn: () => usersApi.getAvatar(id),
+    enabled: !!id, // Only run query if id exists
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000, // 1 hour
   });
 };

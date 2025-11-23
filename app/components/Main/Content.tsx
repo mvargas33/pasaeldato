@@ -9,6 +9,7 @@ type Props = {
   tips: (ComponentProps<typeof TipCard> & { id: string })[];
   onChangeMapCenter: ComponentProps<typeof Map>["onChangeCenter"];
   onChangeSearch: (value: string) => void;
+  onActiveSubtypesChange: (activeSubtypes: string[]) => void;
 };
 
 const Content = ({
@@ -16,6 +17,7 @@ const Content = ({
   tips,
   onChangeMapCenter,
   onChangeSearch,
+  onActiveSubtypesChange,
 }: Props) => (
   <main
     className="flex flex-col pt-24 px-6 pb-6 gap-6"
@@ -24,7 +26,7 @@ const Content = ({
     {/* Search and Filters Section */}
     <section className="flex flex-col gap-4 mt-3">
       <SearchBox onChange={onChangeSearch} />
-      <ChipFilters />
+      <ChipFilters onActiveSubtypesChange={onActiveSubtypesChange} />
     </section>
 
     {/* Map Section */}
@@ -35,7 +37,7 @@ const Content = ({
     {/* Tips List Section */}
     <section className="flex flex-col gap-4 mt-3">
       {tips.map((tip) => (
-        <TipCard key={tip.id} title={tip.title} avatar={tip.avatar} />
+        <TipCard key={tip.id} authorId={tip.authorId} title={tip.title} />
       ))}
     </section>
   </main>

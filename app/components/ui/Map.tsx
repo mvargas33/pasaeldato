@@ -25,6 +25,7 @@ type Marker = {
   picture?: string; // Pin image from form
   authorAvatar?: string; // User profile picture
   subtype?: string; // Pin subtype for icon mapping
+  tipId?: string; // Associated tip ID for navigation
 };
 
 type Props = {
@@ -40,9 +41,9 @@ type MarkerMap = globalThis.Map<string, mapboxgl.Marker>;
  * @returns HTML element for the custom marker
  */
 const createCustomMarkerElement = (marker: Marker): HTMLDivElement => {
-  const el = document.createElement('div');
-  el.className = 'custom-marker';
-  el.style.cursor = 'pointer';
+  const el = document.createElement("div");
+  el.className = "custom-marker";
+  el.style.cursor = "pointer";
 
   // Get the icon configuration based on subtype
   const iconConfig = getCategoryIcon(marker.subtype as PinSubtype);
@@ -80,7 +81,7 @@ const createCustomMarkerElement = (marker: Marker): HTMLDivElement => {
 
 /**
  * Creates popup HTML content with image, title, and description
- * @param marker - Marker data including optional image URLs
+ * @param marker - Marker data including optional image URLs and tipId for navigation
  * @returns HTML string for popup content
  */
 const createPopupContent = (marker: Marker): string => {
@@ -102,6 +103,12 @@ const createPopupContent = (marker: Marker): string => {
     marker.description.length > 20
       ? marker.description.substring(0, 20) + ". . ."
       : marker.description;
+
+  // Create navigation URL if tipId is available
+  const tipUrl = marker.tipId ? `/tip/${marker.tipId}` : '#';
+  const clickHandler = marker.tipId
+    ? `onclick="window.location.href='${tipUrl}'"`
+    : '';
 
   return `
     <div style="
@@ -127,7 +134,7 @@ const createPopupContent = (marker: Marker): string => {
         cursor: pointer;
         font-weight: 600;
         transition: color 0.2s;
-      " onmouseover="this.style.color='#1d4ed8'" onmouseout="this.style.color='#2563eb'">${truncatedDescription}</a>
+      " onmouseover="this.style.color='#1d4ed8'" onmouseout="this.style.color='#2563eb'" ${clickHandler}>${truncatedDescription}</a>
     </div>
   `;
 };
@@ -151,12 +158,15 @@ const Map = ({ markers = [], onChangeCenter }: Props) => {
   const createPinMutation = useCreatePin();
 
   // React Query hook for fetching communities based on clicked location
-  const { data: communities = [], isLoading: isLoadingCommunities } = useGetCommunities(
-    clickedLocation ? {
-      longitude: clickedLocation.lng,
-      latitude: clickedLocation.lat,
-    } : undefined
-  );
+  const { data: communities = [], isLoading: isLoadingCommunities } =
+    useGetCommunities(
+      clickedLocation
+        ? {
+            longitude: clickedLocation.lng,
+            latitude: clickedLocation.lat,
+          }
+        : undefined
+    );
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -308,7 +318,8 @@ const Map = ({ markers = [], onChangeCenter }: Props) => {
     title: string,
     description: string,
     address: string,
-    pictureUrl: string
+    pictureUrl: string,
+    tipId?: string
   ) => {
     const imageHtml = pictureUrl
       ? `<img src="${pictureUrl}" alt="${title}" style="
@@ -326,6 +337,12 @@ const Map = ({ markers = [], onChangeCenter }: Props) => {
       description.length > 20
         ? description.substring(0, 20) + ". . ."
         : description;
+
+    // Create navigation URL if tipId is available
+    const tipUrl = tipId ? `/tip/${tipId}` : '#';
+    const clickHandler = tipId
+      ? `onclick="window.location.href='${tipUrl}'"`
+      : '';
 
     return `
       <div style="
@@ -351,7 +368,7 @@ const Map = ({ markers = [], onChangeCenter }: Props) => {
           cursor: pointer;
           font-weight: 600;
           transition: color 0.2s;
-        " onmouseover="this.style.color='#1d4ed8'" onmouseout="this.style.color='#2563eb'">${truncatedDescription}</a>
+        " onmouseover="this.style.color='#1d4ed8'" onmouseout="this.style.color='#2563eb'" ${clickHandler}>${truncatedDescription}</a>
       </div>
     `;
   };
@@ -386,8 +403,8 @@ const Map = ({ markers = [], onChangeCenter }: Props) => {
     // Create custom marker element with icon
     const customMarkerElement = createCustomMarkerElement({
       id: `temp_${Date.now()}`,
-      title: '',
-      description: '',
+      title: "",
+      description: "",
       longitude: location.lng,
       latitude: location.lat,
       color,
@@ -503,7 +520,12 @@ const Map = ({ markers = [], onChangeCenter }: Props) => {
         pictureDisplayUrl
       );
       try {
-        addMarkerToMap(clickedLocation, popupHTML, categoryColor, formData.icon);
+        addMarkerToMap(
+          clickedLocation,
+          popupHTML,
+          categoryColor,
+          formData.icon
+        );
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Error desconocido";
@@ -559,7 +581,7 @@ const Map = ({ markers = [], onChangeCenter }: Props) => {
 
       {/* Floating Add Pin Button */}
       <button
-        className={`absolute bottom-4 right-4 z-50 w-14 h-14 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110 active:scale-95 flex items-center justify-center ${
+        className={`absolute bottom-4 right-4 z-30 w-14 h-14 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110 active:scale-95 flex items-center justify-center ${
           isCreatingPin
             ? "bg-gray-200 hover:bg-gray-300"
             : "bg-white hover:bg-gray-50"
@@ -744,7 +766,9 @@ const Map = ({ markers = [], onChangeCenter }: Props) => {
                   className="w-full p-3 border-2 border-gray-800 rounded-lg text-gray-900"
                 >
                   <option value="">
-                    {isLoadingCommunities ? 'Cargando comunidades...' : 'Selecciona una comunidad'}
+                    {isLoadingCommunities
+                      ? "Cargando comunidades..."
+                      : "Selecciona una comunidad"}
                   </option>
                   {communities.map((community) => (
                     <option key={community.id} value={community.id}>

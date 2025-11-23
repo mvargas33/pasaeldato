@@ -9,13 +9,6 @@ import {
 } from "@/types/app";
 import type { PinFormData, PinLocation } from "../services/pins";
 
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  userId: string;
-}
-
 interface MapResponse {
   data: MapPin[];
   success?: boolean;
@@ -192,33 +185,6 @@ export const useDeleteUserPreference = () => {
       queryClient.removeQueries({ queryKey: ["user-preferences", id] });
       // Invalidate user preferences list
       queryClient.invalidateQueries({ queryKey: ["user-preferences"] });
-    },
-  });
-};
-
-// React Query hooks for posts
-export const usePosts = () => {
-  return useQuery({
-    queryKey: ["posts"],
-    queryFn: postApi.getPosts,
-  });
-};
-
-export const usePost = (id: string) => {
-  return useQuery({
-    queryKey: ["posts", id],
-    queryFn: () => postApi.getPost(id),
-    enabled: !!id,
-  });
-};
-
-export const useCreatePost = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: postApi.createPost,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
   });
 };

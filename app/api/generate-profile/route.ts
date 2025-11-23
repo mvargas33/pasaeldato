@@ -35,8 +35,6 @@ async function postHandler(request: AuthenticatedRequest) {
       );
     }
 
-    console.log("Generating profile image (256x256):", { description });
-
     // Generate profile image using DALL-E 2 at 256x256 (perfect for profiles)
     const result = await openai.images.generate({
       model: "dall-e-2",
@@ -49,8 +47,6 @@ async function postHandler(request: AuthenticatedRequest) {
     if (!result.data || !result.data[0]?.b64_json) {
       throw new Error("No image data received from OpenAI");
     }
-
-    console.log("Profile image generated successfully");
 
     return NextResponse.json(
       {

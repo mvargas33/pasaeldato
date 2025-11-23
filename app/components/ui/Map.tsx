@@ -106,10 +106,10 @@ const createPopupContent = (marker: Marker): string => {
       : marker.description;
 
   // Create navigation URL if tipId is available
-  const tipUrl = marker.tipId ? `/tip/${marker.tipId}` : '#';
+  const tipUrl = marker.tipId ? `/tip/${marker.tipId}` : "#";
   const clickHandler = marker.tipId
     ? `onclick="window.location.href='${tipUrl}'"`
-    : '';
+    : "";
 
   return `
     <div style="
@@ -140,7 +140,11 @@ const createPopupContent = (marker: Marker): string => {
   `;
 };
 
-const Map = ({ markers = [], communityCircles = [], onChangeCenter }: Props) => {
+const Map = ({
+  markers = [],
+  communityCircles = [],
+  onChangeCenter,
+}: Props) => {
   const mapContainerRef = useRef(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<MarkerMap>(
@@ -227,7 +231,6 @@ const Map = ({ markers = [], communityCircles = [], onChangeCenter }: Props) => 
       if (isCreatingPin) {
         setClickedLocation({ lng: e.lngLat.lng, lat: e.lngLat.lat });
         setShowForm(true);
-        console.log("Map clicked at:", e.lngLat.lng, e.lngLat.lat);
       }
     };
 
@@ -319,118 +322,119 @@ const Map = ({ markers = [], communityCircles = [], onChangeCenter }: Props) => 
     const map = mapRef.current;
     if (!map || !isMapLoaded) return;
 
-    console.log('Map: Processing community circles', {
-      isMapLoaded,
-      communitiesCount: communityCircles.length,
-      communities: communityCircles
-    });
-
-    const sourceId = 'communities';
-    const layerId = 'communities-circles';
+    const sourceId = "communities";
+    const layerId = "communities-circles";
 
     // Remove existing layer and source if they exist
     if (map.getLayer(layerId)) {
-      console.log('Map: Removing existing layer');
       map.removeLayer(layerId);
     }
     if (map.getSource(sourceId)) {
-      console.log('Map: Removing existing source');
       map.removeSource(sourceId);
     }
 
     // If no communities, just return after cleanup
     if (communityCircles.length === 0) {
-      console.log('Map: No communities to display');
       return;
     }
 
     // Create GeoJSON source with community circles - filter out communities with invalid location data
-    const validCommunities = communityCircles.filter((community: import("@/types/app").Community) => {
-      const hasLocation = community.location &&
-                          typeof community.location.longitude === 'number' &&
-                          typeof community.location.latitude === 'number' &&
-                          typeof community.location.radius === 'number' &&
-                          community.location.radius > 0;
+    const validCommunities = communityCircles.filter(
+      (community: import("@/types/app").Community) => {
+        const hasLocation =
+          community.location &&
+          typeof community.location.longitude === "number" &&
+          typeof community.location.latitude === "number" &&
+          typeof community.location.radius === "number" &&
+          community.location.radius > 0;
 
-      if (!hasLocation) {
-        console.warn('Community has invalid location data:', community.id, community.title, community.location);
+        if (!hasLocation) {
+          console.warn(
+            "Community has invalid location data:",
+            community.id,
+            community.title,
+            community.location
+          );
+        }
+
+        return hasLocation;
       }
-
-      return hasLocation;
-    });
+    );
 
     // If no valid communities after filtering, return after cleanup
     if (validCommunities.length === 0) {
-      console.log('Map: No valid communities after filtering');
       return;
     }
 
-    console.log('Map: Valid communities to display:', validCommunities.length);
-
     const geojsonData = {
-      type: 'FeatureCollection' as const,
-      features: validCommunities.map((community: import("@/types/app").Community) => ({
-        type: 'Feature' as const,
-        properties: {
-          id: community.id,
-          title: community.title,
-          description: community.description,
-          radius: community.location.radius,
-          colour: community.colour || '#3DDC97',
-        },
-        geometry: {
-          type: 'Point' as const,
-          coordinates: [community.location.longitude, community.location.latitude],
-        },
-      })),
+      type: "FeatureCollection" as const,
+      features: validCommunities.map(
+        (community: import("@/types/app").Community) => ({
+          type: "Feature" as const,
+          properties: {
+            id: community.id,
+            title: community.title,
+            description: community.description,
+            radius: community.location.radius,
+            colour: community.colour || "#3DDC97",
+          },
+          geometry: {
+            type: "Point" as const,
+            coordinates: [
+              community.location.longitude,
+              community.location.latitude,
+            ],
+          },
+        })
+      ),
     };
-
-    console.log('Map: GeoJSON data created:', geojsonData);
 
     // Add the source
     map.addSource(sourceId, {
-      type: 'geojson',
+      type: "geojson",
       data: geojsonData,
     });
-    console.log('Map: Source added');
 
     // Add the circle layer with radius in meters
     // Using Mapbox's meters-to-pixels conversion
     // Add the layer without specifying 'beforeId' so it appears on top
     map.addLayer({
       id: layerId,
-      type: 'circle',
+      type: "circle",
       source: sourceId,
       paint: {
         // Use circle-radius in meters with pitchAlignment and pitchScaling
-        'circle-radius': [
-          'interpolate',
-          ['linear'],
-          ['zoom'],
+        "circle-radius": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
           // At zoom 10, 1000m ≈ 50 pixels
-          10, ['/', ['get', 'radius'], 20],
+          10,
+          ["/", ["get", "radius"], 20],
           // At zoom 13, 1000m ≈ 400 pixels
-          13, ['/', ['get', 'radius'], 2.5],
+          13,
+          ["/", ["get", "radius"], 2.5],
           // At zoom 15, 1000m ≈ 1600 pixels
-          15, ['*', ['get', 'radius'], 0.64],
+          15,
+          ["*", ["get", "radius"], 0.64],
           // At zoom 20, scale up significantly
-          20, ['*', ['get', 'radius'], 20],
+          20,
+          ["*", ["get", "radius"], 20],
         ],
-        'circle-color': ['get', 'colour'],
-        'circle-opacity': 0.3,
-        'circle-stroke-width': 3,
-        'circle-stroke-color': ['get', 'colour'],
-        'circle-stroke-opacity': 0.8,
+        "circle-color": ["get", "colour"],
+        "circle-opacity": 0.3,
+        "circle-stroke-width": 3,
+        "circle-stroke-color": ["get", "colour"],
+        "circle-stroke-opacity": 0.8,
       },
     });
 
     const currentZoom = map.getZoom();
-    console.log('Map: Circle layer added successfully', {
-      radii: validCommunities.map(c => c.location.radius),
+    /* console.log("Map: Circle layer added successfully", {
+      radii: validCommunities.map((c) => c.location.radius),
       currentZoom,
       samplePixelRadius: (validCommunities[0]?.location.radius || 0) * 0.64,
-    });
-
+    }); */
   }, [communityCircles, isMapLoaded]);
 
   // Helper: Create marker popup HTML (for newly created pins)
@@ -459,10 +463,10 @@ const Map = ({ markers = [], communityCircles = [], onChangeCenter }: Props) => 
         : description;
 
     // Create navigation URL if tipId is available
-    const tipUrl = tipId ? `/tip/${tipId}` : '#';
+    const tipUrl = tipId ? `/tip/${tipId}` : "#";
     const clickHandler = tipId
       ? `onclick="window.location.href='${tipUrl}'"`
-      : '';
+      : "";
 
     return `
       <div style="
@@ -564,8 +568,6 @@ const Map = ({ markers = [], communityCircles = [], onChangeCenter }: Props) => 
       // Generate unique ID for this pin
       const uniqueId = `pin_${Date.now()}`;
 
-      // Step 1: Generate AI background from description
-      console.log("Generating AI background image...");
       const { generateBackgroundImage } = await import(
         "@/app/services/imageGeneration"
       );
@@ -595,13 +597,11 @@ const Map = ({ markers = [], communityCircles = [], onChangeCenter }: Props) => 
 
       const backgroundResult = await backgroundResponse.json();
       const backgroundImageUrl = backgroundResult.s3Key;
-      console.log("Background uploaded:", backgroundImageUrl);
 
       // Step 2: Upload user picture if provided
       let pictureUrl = "";
       if (formData.picture && formData.picture.size > 0) {
         try {
-          console.log("Uploading user picture...");
           const imageBase64 = await convertFileToBase64(formData.picture);
 
           const imageResponse = await fetch("/api/s3", {
@@ -619,7 +619,6 @@ const Map = ({ markers = [], communityCircles = [], onChangeCenter }: Props) => 
 
           const imageResult = await imageResponse.json();
           pictureUrl = imageResult.s3Key;
-          console.log("User image uploaded:", pictureUrl);
         } catch {
           alert(
             "Falló la carga de la imagen, pero el pin se creará sin imagen"
@@ -713,9 +712,6 @@ const Map = ({ markers = [], communityCircles = [], onChangeCenter }: Props) => 
             setClickedLocation(null);
           } else {
             setIsCreatingPin(true);
-            console.log(
-              "Pin creation mode activated - click on the map to place a pin"
-            );
           }
         }}
         title={isCreatingPin ? "Cancel pin creation" : "Add new pin"}
@@ -752,7 +748,6 @@ const Map = ({ markers = [], communityCircles = [], onChangeCenter }: Props) => 
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                console.log("Form submission started");
 
                 const formData = new FormData(e.currentTarget);
                 const title = formData.get("title") as string;
@@ -763,7 +758,7 @@ const Map = ({ markers = [], communityCircles = [], onChangeCenter }: Props) => 
                 const communityId = formData.get("communityId") as string;
                 const pictureFile = formData.get("picture") as File;
 
-                console.log("Form data extracted:");
+                /* console.log("Form data extracted:");
                 console.log("- Title:", title);
                 console.log("- Description:", description);
                 console.log("- Address:", address);
@@ -777,7 +772,7 @@ const Map = ({ markers = [], communityCircles = [], onChangeCenter }: Props) => 
                   "- Picture size:",
                   pictureFile ? pictureFile.size : 0
                 );
-                console.log("- Clicked location:", clickedLocation);
+                console.log("- Clicked location:", clickedLocation); */
 
                 // Validate required fields
                 if (!title || !address || !subtype || !icon || !communityId) {

@@ -37,13 +37,6 @@ const Main = () => {
       : undefined
   );
 
-  console.log("Main component state:", {
-    isCommunityMode,
-    latitude,
-    longitude,
-    communitiesCount: communitiesData?.length || 0,
-  });
-
   const onChangeMapCenter = (newLongitude: number, newLatitude: number) => {
     setLongitude(newLongitude);
     setLatitude(newLatitude);

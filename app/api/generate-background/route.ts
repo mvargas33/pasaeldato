@@ -36,8 +36,6 @@ async function postHandler(request: AuthenticatedRequest) {
       );
     }
 
-    console.log("Generating background image (1024x1024):", { description });
-
     // Generate wide background image using DALL-E 2 at maximum resolution
     const result = await openai.images.generate({
       model: "dall-e-2",
@@ -50,8 +48,6 @@ async function postHandler(request: AuthenticatedRequest) {
     if (!result.data || !result.data[0]?.b64_json) {
       throw new Error("No image data received from OpenAI");
     }
-
-    console.log("Background image generated successfully");
 
     return NextResponse.json(
       {

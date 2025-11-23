@@ -143,10 +143,16 @@ async function getHandler(request: AuthenticatedRequest) {
     const updatedAtParam = searchParams.get("updatedAt");
     const longitudeParam = searchParams.get("longitude");
     const latitudeParam = searchParams.get("latitude");
+    const isCommunityModeParam = searchParams.get("isCommunityMode");
+    const allowedSubtypesParam = searchParams.get("allowedSubtypes");
 
     const hasSearchQuery = searchQuery !== null && searchQuery.trim() !== "";
     const hasUpdatedAt = updatedAtParam !== null;
     const hasLocation = longitudeParam !== null && latitudeParam !== null;
+    const isCommunityMode = isCommunityModeParam === "true";
+    const allowedSubtypes = allowedSubtypesParam
+      ? allowedSubtypesParam.split(",").map((s) => s.trim())
+      : undefined;
 
     if (hasSearchQuery || hasUpdatedAt || hasLocation) {
       const updatedAt = updatedAtParam ? new Date(updatedAtParam) : undefined;
@@ -196,18 +202,51 @@ async function getHandler(request: AuthenticatedRequest) {
 
       const trimmedSearchQuery = hasSearchQuery ? searchQuery.trim() : undefined;
       
+      let userCommunityIds: mongoose.Types.ObjectId[] = [];
+      if (isCommunityMode) {
+        const userId = request.user?.id;
+        if (!userId) {
+          return NextResponse.json(
+            { error: "User ID not found" },
+            { status: 400 }
+          );
+        }
+        const userCommunities = await Community.find({
+          members: new mongoose.Types.ObjectId(userId),
+        });
+        userCommunityIds = userCommunities.map((community) => community._id);
+        
+        if (userCommunityIds.length === 0) {
+          return NextResponse.json({
+            pins: [],
+            nonPins: [],
+          });
+        }
+      }
+      
+      const finalCommunityIds = isCommunityMode
+        ? userCommunityIds
+        : communityIds.map((id) => new mongoose.Types.ObjectId(id));
+      
       const result = await Tip.searchTips({
         searchQuery: trimmedSearchQuery,
         updatedAt,
-        communityIds: communityIds.map((id) => new mongoose.Types.ObjectId(id)),
+        communityIds: finalCommunityIds,
       });
 
-      const pins: MapPin[] = result.pins.map((pin) =>
+      let pins: MapPin[] = result.pins.map((pin) =>
         transformTipToMapPin(pin)
       );
       const nonPins: TextTip[] = result.nonPins.map((nonPin) =>
         transformTipToTipText(nonPin)
       );
+
+      if (allowedSubtypes && allowedSubtypes.length > 0) {
+        pins = pins.filter((pin) => {
+          if (!pin.subtype) return false;
+          return allowedSubtypes.includes(pin.subtype);
+        });
+      }
 
       return NextResponse.json({
         pins,
@@ -216,11 +255,36 @@ async function getHandler(request: AuthenticatedRequest) {
     }
 
     // Default: return all tips without filters
-    const tips = (await Tip.find().limit(100).lean()) as unknown as (
+    let query: mongoose.FilterQuery<typeof Tip> = {};
+    
+    if (isCommunityMode) {
+      const userId = request.user?.id;
+      if (!userId) {
+        return NextResponse.json(
+          { error: "User ID not found" },
+          { status: 400 }
+        );
+      }
+      const userCommunities = await Community.find({
+        members: new mongoose.Types.ObjectId(userId),
+      });
+      const userCommunityIds = userCommunities.map((community) => community._id);
+      
+      if (userCommunityIds.length === 0) {
+        return NextResponse.json({
+          pins: [],
+          nonPins: [],
+        });
+      }
+      
+      query = { communityId: { $in: userCommunityIds } };
+    }
+    
+    const tips = (await Tip.find(query).limit(100).lean()) as unknown as (
       | TipPinLean
       | TipTextLean
     )[];
-    const pins: MapPin[] = [];
+    let pins: MapPin[] = [];
     const nonPins: TextTip[] = [];
 
     for (const tip of tips) {
@@ -229,6 +293,13 @@ async function getHandler(request: AuthenticatedRequest) {
       } else {
         nonPins.push(transformTipToTipText(tip as TipTextLean));
       }
+    }
+
+    if (allowedSubtypes && allowedSubtypes.length > 0) {
+      pins = pins.filter((pin) => {
+        if (!pin.subtype) return false;
+        return allowedSubtypes.includes(pin.subtype);
+      });
     }
 
     return NextResponse.json({

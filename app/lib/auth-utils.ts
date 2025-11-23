@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Session } from "next-auth";
 
 export interface RouteContext {
-  params?: Record<string, string>;
+  params: Promise<Record<string, string>>;
 }
 
 export interface AuthenticatedRequest extends NextRequest {
@@ -21,7 +21,10 @@ export function withAuth(
     context?: RouteContext
   ) => Promise<NextResponse>
 ) {
-  return async (request: NextRequest, context?: RouteContext) => {
+  return async (
+    request: NextRequest,
+    context?: { params: Promise<Record<string, string>> }
+  ) => {
     const session = await getServerSession(authOptions);
 
     if (!session) {

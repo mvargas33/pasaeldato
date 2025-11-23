@@ -6,7 +6,8 @@ import { AuthenticatedRequest, RouteContext, withAuth } from "@/app/lib/auth-uti
 async function getHandler(request: AuthenticatedRequest, context?: RouteContext) {
   try {
     await initializeMongoDb({});
-    const id = context?.params?.id;
+    const params = await context?.params;
+    const id = params?.id;
 
     if (!id) {
       return NextResponse.json({ error: "id required" }, { status: 400 });

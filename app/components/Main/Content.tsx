@@ -3,10 +3,12 @@ import SearchBox from "../SearchBox";
 import ChipFilters from "../ChipFilter";
 import TipCard from "../TipCard";
 import { ComponentProps } from "react";
+import { Community } from "@/types/app";
 
 type Props = {
   mapPins: ComponentProps<typeof Map>["pins"];
   tips: (ComponentProps<typeof TipCard> & { id: string })[];
+  communities: Community[];
   onChangeMapCenter: ComponentProps<typeof Map>["onChangeCenter"];
   onChangeSearch: (value: string) => void;
   onActiveSubtypesChange: (activeSubtypes: string[]) => void;
@@ -16,6 +18,7 @@ type Props = {
 const Content = ({
   mapPins,
   tips,
+  communities,
   onChangeMapCenter,
   onChangeSearch,
   onActiveSubtypesChange,
@@ -28,7 +31,7 @@ const Content = ({
     {/* Search and Filters Section */}
     <section className="flex flex-col gap-4 mt-3">
       <SearchBox onChange={onChangeSearch} />
-      <ChipFilters 
+      <ChipFilters
         onActiveSubtypesChange={onActiveSubtypesChange}
         onIsCommunityModeChange={onIsCommunityModeChange}
       />
@@ -36,7 +39,7 @@ const Content = ({
 
     {/* Map Section */}
     <section className="w-full h-[400px] rounded-lg overflow-hidden">
-      <Map pins={mapPins} onChangeCenter={onChangeMapCenter} />
+      <Map pins={mapPins} communities={communities} onChangeCenter={onChangeMapCenter} />
     </section>
 
     {/* Tips List Section */}

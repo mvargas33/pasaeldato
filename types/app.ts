@@ -98,6 +98,12 @@ export interface Community {
   tags: string[];
   description: string;
   createdAt: string;
+  location: {
+    longitude: number;
+    latitude: number;
+    radius: number; // in meters
+  };
+  colour?: string;
 }
 
 

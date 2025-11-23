@@ -86,9 +86,9 @@ export default function ChipFilters({ onActiveSubtypesChange, onIsCommunityModeC
   const visibleFilters = allFilters;
 
   return (
-    <div className="w-full flex flex-wrap gap-0 space-between items-center">
-      {/* use 50% width here */}
-      <div className="w-1/2 flex justify-start flex-wrap gap-3"> 
+    <div className="w-full flex flex-wrap gap-3 md:gap-0 space-between items-center">
+      {/* Responsive: full width on mobile, half on md+ */}
+      <div className="w-full md:w-1/2 flex justify-start flex-wrap gap-3"> 
         {visibleFilters.map((filter) => (
           <ChipFilter
             key={filter.label}
@@ -100,8 +100,8 @@ export default function ChipFilters({ onActiveSubtypesChange, onIsCommunityModeC
           />
         ))}
       </div>
-      <div className="w-1/2 flex justify-end items-center gap-2">
-        {!checked && (
+      <div className="w-full md:w-1/2 flex justify-center md:justify-end items-center gap-2">
+        {!checked ? (
           <span style={{
             fontWeight: 600,
             color: '#1a1a1a',
@@ -111,7 +111,15 @@ export default function ChipFilters({ onActiveSubtypesChange, onIsCommunityModeC
           }}>
             Modo Comunidad 🌳
           </span>
-        )}
+        ): <span style={{
+            fontWeight: 600,
+            color: '#1a1a1a',
+            fontSize: '1.1em',
+            marginRight: '8px',
+            whiteSpace: 'nowrap',
+          }}>
+            Ver todo
+          </span> }
         <ToggleSwitch label="" checked={checked} onChange={handleToggle} height="48px" />
       </div>
     </div>

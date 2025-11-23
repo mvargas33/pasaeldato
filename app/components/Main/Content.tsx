@@ -41,9 +41,18 @@ const Content = ({
 
     {/* Tips List Section */}
     <section className="flex flex-col gap-4 mt-3">
-      {tips.map((tip) => (
-        <TipCard key={tip.id} title={tip.title} tipId={tip.id} authorId={tip.authorId} />
-      ))}
+      {tips.length === 0 ? (
+        <div
+          className="w-full h-32 flex items-center justify-center rounded-lg"
+          style={{ background: "var(--color-background)" }}
+        >
+          <span className="text-gray-500">No hay resultados</span>
+        </div>
+      ) : (
+        tips.map((tip) => (
+          <TipCard key={tip.id} title={tip.title} tipId={tip.id} authorId={tip.authorId} />
+        ))
+      )}
     </section>
   </main>
 );

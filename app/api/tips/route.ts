@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { initializeMongoDb } from "@/backend/database/connection";
 import { Tip, TipPin, TipText, Community } from "@/backend/database/models";
 import { MapPin, TextTip, MapPinType, PinSubtype } from "@/types/app";
-import { withAuth } from "@/app/lib/auth-utils";
+import { AuthenticatedRequest, withAuth } from "@/app/lib/auth-utils";
 import mongoose from "mongoose";
 
 type TipPinDocument = mongoose.HydratedDocument<InstanceType<typeof TipPin>>;
@@ -74,6 +74,7 @@ function transformTipToMapPin(tip: TipPinLean | TipPinDocument): MapPin {
     address: (tipObj.address as string) || "",
     picture: tipObj.picture as string | undefined,
     colour: tipObj.colour as string | undefined,
+    icon: tipObj.icon as string | undefined,
     startDate: convertDate(tipObj.startDate),
     duration: tipObj.duration as number | undefined,
     contact:
@@ -125,7 +126,7 @@ function transformTipToTipText(tip: TipTextLean | TipTextDocument): TextTip {
   };
 }
 
-async function getHandler(request: Request) {
+async function getHandler(request: AuthenticatedRequest) {
   try {
     await initializeMongoDb({});
     const { searchParams } = new URL(request.url);
@@ -143,7 +144,11 @@ async function getHandler(request: Request) {
     const longitudeParam = searchParams.get("longitude");
     const latitudeParam = searchParams.get("latitude");
 
-    if (searchQuery || updatedAtParam || (longitudeParam && latitudeParam)) {
+    const hasSearchQuery = searchQuery !== null && searchQuery.trim() !== "";
+    const hasUpdatedAt = updatedAtParam !== null;
+    const hasLocation = longitudeParam !== null && latitudeParam !== null;
+
+    if (hasSearchQuery || hasUpdatedAt || hasLocation) {
       const updatedAt = updatedAtParam ? new Date(updatedAtParam) : undefined;
 
       let communityIds: string[] = [];
@@ -189,8 +194,10 @@ async function getHandler(request: Request) {
         );
       }
 
+      const trimmedSearchQuery = hasSearchQuery ? searchQuery.trim() : undefined;
+      
       const result = await Tip.searchTips({
-        searchQuery: searchQuery || undefined,
+        searchQuery: trimmedSearchQuery,
         updatedAt,
         communityIds: communityIds.map((id) => new mongoose.Types.ObjectId(id)),
       });
@@ -236,7 +243,7 @@ async function getHandler(request: Request) {
   }
 }
 
-async function postHandler(request: Request) {
+async function postHandler(request: AuthenticatedRequest) {
   try {
     await initializeMongoDb({});
     const body = await request.json();
@@ -265,7 +272,7 @@ async function postHandler(request: Request) {
   }
 }
 
-async function putHandler(request: Request) {
+async function putHandler(request: AuthenticatedRequest) {
   try {
     await initializeMongoDb({});
     const { searchParams } = new URL(request.url);
@@ -285,7 +292,7 @@ async function putHandler(request: Request) {
   }
 }
 
-async function deleteHandler(request: Request) {
+async function deleteHandler(request: AuthenticatedRequest) {
   try {
     await initializeMongoDb({});
     const { searchParams } = new URL(request.url);

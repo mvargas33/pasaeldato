@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { initializeMongoDb } from "@/backend/database/connection";
 import { Community } from "@/backend/database/models";
+import { AuthenticatedRequest, withAuth } from "@/app/lib/auth-utils";
 
 /**
  * Transform MongoDB community document to frontend format
@@ -11,16 +12,15 @@ function transformCommunity(community: any) {
     id: community._id.toString(),
     title: community.name,
     description: community.description,
-    locationId: community.location?._id?.toString() || '',
+    locationId: community.location?._id?.toString() || "",
     memberIds: community.members?.map((m: any) => m.toString()) || [],
     pinIds: [], // Not stored in current schema
     tags: community.tags || [],
     createdAt: community.createdAt?.toISOString() || new Date().toISOString(),
   };
 }
-import { withAuth } from "@/app/lib/auth-utils";
 
-async function getHandler(request: Request) {
+async function getHandler(request: AuthenticatedRequest) {
   try {
     await initializeMongoDb({});
     const { searchParams } = new URL(request.url);
@@ -28,7 +28,8 @@ async function getHandler(request: Request) {
 
     if (id) {
       const community = await Community.findById(id);
-      if (!community) return NextResponse.json({ error: "Not found" }, { status: 404 });
+      if (!community)
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
       return NextResponse.json(community);
     }
 
@@ -63,7 +64,7 @@ async function getHandler(request: Request) {
   }
 }
 
-async function postHandler(request: Request) {
+async function postHandler(request: AuthenticatedRequest) {
   try {
     await initializeMongoDb({});
     const body = await request.json();
@@ -77,7 +78,7 @@ async function postHandler(request: Request) {
   }
 }
 
-async function putHandler(request: Request) {
+async function putHandler(request: AuthenticatedRequest) {
   try {
     await initializeMongoDb({});
     const { searchParams } = new URL(request.url);
@@ -100,7 +101,7 @@ async function putHandler(request: Request) {
   }
 }
 
-async function deleteHandler(request: Request) {
+async function deleteHandler(request: AuthenticatedRequest) {
   try {
     await initializeMongoDb({});
     const { searchParams } = new URL(request.url);

@@ -89,7 +89,7 @@ export default function UserOnboardingForm() {
       }
 
       await response.json();
-      router.push("/");
+      router.push("/communities");
     } catch (error) {
       console.error("Error submitting form:", error);
       alert(error instanceof Error ? error.message : "Error al enviar los datos. Por favor, intenta nuevamente.");

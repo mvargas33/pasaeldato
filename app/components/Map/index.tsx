@@ -1,5 +1,5 @@
 import MapComponent from "../ui/Map";
-import { MapPin } from "@/types/app";
+import { MapPin, Community } from "@/types/app";
 import { getS3Url } from "../../services/s3";
 
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -39,12 +39,13 @@ const parseMapDataToMarkers = (mapPins: MapPin[]): MapComponentMarker[] => {
 
 type Props = Pick<ComponentProps<typeof MapComponent>, "onChangeCenter"> & {
   pins: MapPin[];
+  communities: Community[];
 };
 
-const Map = ({ pins, onChangeCenter }: Props) => {
+const Map = ({ pins, communities, onChangeCenter }: Props) => {
   const markers = parseMapDataToMarkers(pins);
 
-  return <MapComponent markers={markers} onChangeCenter={onChangeCenter} />;
+  return <MapComponent markers={markers} communityCircles={communities} onChangeCenter={onChangeCenter} />;
 };
 
 export default Map;

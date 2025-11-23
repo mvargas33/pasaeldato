@@ -8,6 +8,9 @@ import { AuthenticatedRequest, withAuth } from "@/app/lib/auth-utils";
  * Maps _id to id and name to title for frontend compatibility
  */
 function transformCommunity(community: any) {
+  // Debug: log the location structure
+  console.log('Transforming community:', community._id, 'location:', JSON.stringify(community.location));
+
   return {
     id: community._id.toString(),
     title: community.name,
@@ -17,6 +20,12 @@ function transformCommunity(community: any) {
     pinIds: [], // Not stored in current schema
     tags: community.tags || [],
     createdAt: community.createdAt?.toISOString() || new Date().toISOString(),
+    location: {
+      longitude: community.location?.point?.coordinates?.[0] ?? 0,
+      latitude: community.location?.point?.coordinates?.[1] ?? 0,
+      radius: community.location?.radius ?? 0,
+    },
+    colour: community.colour || "#3DDC97",
   };
 }
 

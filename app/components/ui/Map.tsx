@@ -30,6 +30,7 @@ type Marker = {
 
 type Props = {
   markers?: Marker[];
+  communityCircles?: import("@/types/app").Community[];
   onChangeCenter?: (longitude: number, latitude: number) => void;
 };
 
@@ -139,7 +140,7 @@ const createPopupContent = (marker: Marker): string => {
   `;
 };
 
-const Map = ({ markers = [], onChangeCenter }: Props) => {
+const Map = ({ markers = [], communityCircles = [], onChangeCenter }: Props) => {
   const mapContainerRef = useRef(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<MarkerMap>(
@@ -312,6 +313,125 @@ const Map = ({ markers = [], onChangeCenter }: Props) => {
       }
     }
   }, [markers, isMapLoaded]);
+
+  // Effect to add/remove community circles when communities prop changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isMapLoaded) return;
+
+    console.log('Map: Processing community circles', {
+      isMapLoaded,
+      communitiesCount: communityCircles.length,
+      communities: communityCircles
+    });
+
+    const sourceId = 'communities';
+    const layerId = 'communities-circles';
+
+    // Remove existing layer and source if they exist
+    if (map.getLayer(layerId)) {
+      console.log('Map: Removing existing layer');
+      map.removeLayer(layerId);
+    }
+    if (map.getSource(sourceId)) {
+      console.log('Map: Removing existing source');
+      map.removeSource(sourceId);
+    }
+
+    // If no communities, just return after cleanup
+    if (communityCircles.length === 0) {
+      console.log('Map: No communities to display');
+      return;
+    }
+
+    // Create GeoJSON source with community circles - filter out communities with invalid location data
+    const validCommunities = communityCircles.filter((community: import("@/types/app").Community) => {
+      const hasLocation = community.location &&
+                          typeof community.location.longitude === 'number' &&
+                          typeof community.location.latitude === 'number' &&
+                          typeof community.location.radius === 'number' &&
+                          community.location.radius > 0;
+
+      if (!hasLocation) {
+        console.warn('Community has invalid location data:', community.id, community.title, community.location);
+      }
+
+      return hasLocation;
+    });
+
+    // If no valid communities after filtering, return after cleanup
+    if (validCommunities.length === 0) {
+      console.log('Map: No valid communities after filtering');
+      return;
+    }
+
+    console.log('Map: Valid communities to display:', validCommunities.length);
+
+    const geojsonData = {
+      type: 'FeatureCollection' as const,
+      features: validCommunities.map((community: import("@/types/app").Community) => ({
+        type: 'Feature' as const,
+        properties: {
+          id: community.id,
+          title: community.title,
+          description: community.description,
+          radius: community.location.radius,
+          colour: community.colour || '#3DDC97',
+        },
+        geometry: {
+          type: 'Point' as const,
+          coordinates: [community.location.longitude, community.location.latitude],
+        },
+      })),
+    };
+
+    console.log('Map: GeoJSON data created:', geojsonData);
+
+    // Add the source
+    map.addSource(sourceId, {
+      type: 'geojson',
+      data: geojsonData,
+    });
+    console.log('Map: Source added');
+
+    // Add the circle layer with radius in meters
+    // Using Mapbox's meters-to-pixels conversion
+    // Add the layer without specifying 'beforeId' so it appears on top
+    map.addLayer({
+      id: layerId,
+      type: 'circle',
+      source: sourceId,
+      paint: {
+        // Use circle-radius in meters with pitchAlignment and pitchScaling
+        'circle-radius': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          // At zoom 10, 1000m ≈ 50 pixels
+          10, ['/', ['get', 'radius'], 20],
+          // At zoom 13, 1000m ≈ 400 pixels
+          13, ['/', ['get', 'radius'], 2.5],
+          // At zoom 15, 1000m ≈ 1600 pixels
+          15, ['*', ['get', 'radius'], 0.64],
+          // At zoom 20, scale up significantly
+          20, ['*', ['get', 'radius'], 20],
+        ],
+        'circle-color': ['get', 'colour'],
+        'circle-opacity': 0.3,
+        'circle-stroke-width': 3,
+        'circle-stroke-color': ['get', 'colour'],
+        'circle-stroke-opacity': 0.8,
+      },
+    });
+
+    const currentZoom = map.getZoom();
+    console.log('Map: Circle layer added successfully', {
+      radii: validCommunities.map(c => c.location.radius),
+      currentZoom,
+      samplePixelRadius: (validCommunities[0]?.location.radius || 0) * 0.64,
+    });
+
+  }, [communityCircles, isMapLoaded]);
 
   // Helper: Create marker popup HTML (for newly created pins)
   const createPopupHTML = (

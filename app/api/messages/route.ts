@@ -9,8 +9,6 @@ async function getHandler(request: AuthenticatedRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
-    console.log("[GET /api/messages] id param:", id);
-
     if (id) {
       const message = await Message.findById(id).populate({
         path: "authorId",
@@ -18,7 +16,6 @@ async function getHandler(request: AuthenticatedRequest) {
         model: User,
       });
 
-      console.log("[GET /api/messages] Fetched message:", message);
       if (!message)
         return NextResponse.json({ error: "Not found" }, { status: 404 });
 

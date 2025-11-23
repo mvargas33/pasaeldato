@@ -8,9 +8,6 @@ import { AuthenticatedRequest, withAuth } from "@/app/lib/auth-utils";
  * Maps _id to id and name to title for frontend compatibility
  */
 function transformCommunity(community: any) {
-  // Debug: log the location structure
-  console.log('Transforming community:', community._id, 'location:', JSON.stringify(community.location));
-
   return {
     id: community._id.toString(),
     title: community.name,

@@ -6,41 +6,39 @@ import { ComponentProps } from "react";
 
 type Props = {
   mapPins: ComponentProps<typeof Map>["pins"];
+  tips: (ComponentProps<typeof TipCard> & { id: string })[];
   onChangeMapCenter: ComponentProps<typeof Map>["onChangeCenter"];
   onChangeSearch: (value: string) => void;
 };
 
-const Content = ({ mapPins, onChangeMapCenter, onChangeSearch }: Props) => {
-  const mockTips = [
-    { id: 1, title: "Tengo dato de gasfiter cerca del costanera" },
-    { id: 2, title: "Vendo una bici" },
-    { id: 3, title: "Quien sabe jugar bridge para unas partidas?" },
-    { id: 4, title: "Estoy empezando un taller de costura gratis !" },
-  ];
+const Content = ({
+  mapPins,
+  tips,
+  onChangeMapCenter,
+  onChangeSearch,
+}: Props) => (
+  <main
+    className="flex flex-col pt-24 px-6 pb-6 gap-6"
+    style={{ background: "var(--color-background)" }}
+  >
+    {/* Search and Filters Section */}
+    <section className="flex flex-col gap-4 mt-3">
+      <SearchBox onChange={onChangeSearch} />
+      <ChipFilters />
+    </section>
 
-  console.log(onChangeMapCenter)
+    {/* Map Section */}
+    <section className="w-full h-[400px] rounded-lg overflow-hidden">
+      <Map pins={mapPins} onChangeCenter={onChangeMapCenter} />
+    </section>
 
-  return (
-    <main className="flex flex-col pt-24 px-6 pb-6 gap-6" style={{ background: 'var(--color-background)' }}>
-      {/* Search and Filters Section */}
-      <section className="flex flex-col gap-4 mt-3">
-        <SearchBox onChange={onChangeSearch} />
-        <ChipFilters />
-      </section>
-
-      {/* Map Section */}
-      <section className="w-full h-[400px] rounded-lg overflow-hidden">
-        <Map pins={mapPins} onChangeCenter={onChangeMapCenter} />
-      </section>
-
-      {/* Tips List Section */}
-      <section className="flex flex-col gap-4 mt-3">
-        {mockTips.map((tip) => (
-          <TipCard key={tip.id} title={tip.title} />
-        ))}
-      </section>
-    </main>
-  );
-};
+    {/* Tips List Section */}
+    <section className="flex flex-col gap-4 mt-3">
+      {tips.map((tip) => (
+        <TipCard key={tip.id} title={tip.title} avatar={tip.avatar} />
+      ))}
+    </section>
+  </main>
+);
 
 export default Content;

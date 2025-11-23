@@ -23,6 +23,8 @@ const Main = () => {
     ...(longitude && { longitude }),
   });
 
+  console.log("Tips data:", tipsData?.nonPins);
+
   const onChangeMapCenter = (newLongitude: number, newLatitude: number) => {
     setLongitude(newLongitude);
     setLatitude(newLatitude);
@@ -35,6 +37,7 @@ const Main = () => {
   return (
     <Content
       mapPins={tipsData?.pins || []}
+      tips={tipsData?.nonPins || []}
       onChangeMapCenter={onChangeMapCenter}
       onChangeSearch={handleChangeSearch}
     />

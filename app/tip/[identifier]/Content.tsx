@@ -54,7 +54,7 @@ const Content = ({ id }: Props) => {
               minHeight: 0,
             }}
           >
-            {backgroundImage ? (
+              {backgroundImage ? (
               <img
                 src={backgroundImage}
                 alt="Avatar"
@@ -111,8 +111,8 @@ const Content = ({ id }: Props) => {
             Crear +
           </button>
         </div>
-        <div className="flex flex-col gap-4">
-          {tip.comments.map((comment, idx) => (
+        <div className="flex flex-col gap-4 py-4">
+            {tip.comments.map((comment) => (
             <Suspense key={comment} fallback={<Loader />}>
               <DiscussionCard discussion={comment} />
             </Suspense>

@@ -121,8 +121,28 @@ function MessageList({
           placeholder="My comment ..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          style={{
+            background: "white",
+            color: "var(--foreground)",
+            fontFamily: "Helvetica Neue, Helvetica, Arial, sans-serif",
+            border: "1.5px solid rgb(0, 0, 0)",
+            boxShadow: "3px 3px 0px rgba(0, 0, 0, 0.7)",
+            lineHeight: 1.1,
+            minHeight: 0,
+          }}
         />
-        <button className="px-4 py-2 bg-red-600 text-white rounded shadow hover:bg-red-700 transition">
+        <button
+          className="px-4 py-2 rounded-full text-sm font-medium transition-all w-fit"
+          style={{
+            background: "var(--color-chip-5)",
+            color: "var(--foreground)",
+            fontFamily: "Helvetica Neue, Helvetica, Arial, sans-serif",
+            border: "1.5px solid rgb(0, 0, 0)",
+            boxShadow: "3px 3px 0px rgba(0, 0, 0, 0.7)",
+            lineHeight: 1.1,
+            minHeight: 0,
+          }}
+        >
           Enviar
         </button>
       </div>

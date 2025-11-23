@@ -9,6 +9,29 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useGetCommunities, useJoinCommunity, useLeaveCommunity } from "@/app/hooks/api";
 
+const communityEmoji = [
+  { "emoji": "🎨", "hex": "#F8E4A6" },
+  { "emoji": "🎸", "hex": "#F3C8A2" },
+  { "emoji": "📚", "hex": "#B8E6C4" },
+  { "emoji": "🎮", "hex": "#C9D1D9" },
+  { "emoji": "🧑‍💻", "hex": "#B3DAF5" },
+  { "emoji": "🏋️‍♂️", "hex": "#A8D4EF" },
+  { "emoji": "🍳", "hex": "#F9EDB0" },
+  { "emoji": "🌍", "hex": "#B7DDF7" },
+  { "emoji": "📷", "hex": "#D6D6D6" },
+  { "emoji": "🚴‍♂️", "hex": "#F7EBA8" },
+  { "emoji": "🧗‍♂️", "hex": "#F4D2B1" },
+  { "emoji": "🎬", "hex": "#D4D4D4" },
+  { "emoji": "🌱", "hex": "#C2EDCE" },
+  { "emoji": "🧩", "hex": "#BDDFF5" },
+  { "emoji": "♟️", "hex": "#E1E1E1" },
+  { "emoji": "🧵", "hex": "#C9E7F7" },
+  { "emoji": "🏍️", "hex": "#F4B6B6" },
+  { "emoji": "🐟", "hex": "#C8E8F3" },
+  { "emoji": "🍷", "hex": "#E9A8B2" },
+  { "emoji": "🧘‍♂️", "hex": "#B6DDF2" }
+]
+
 type CommunityCardProps = {
   communityId: string;
   avatarUrl: string;
@@ -54,22 +77,45 @@ function CommunityCard({ communityId, avatarUrl, portadaUrl, title, isPartOf: in
       ) : (
         <div
           className="absolute top-0 left-0 w-full h-2/5 rounded-t-lg"
-          style={{ background: "#C94B4B", height: "40%" }}
+          style={{ background: !isPartOf ? "var(--color-chip-1)" : "var(--color-chip-9)", height: "40%" }}
         />
       )}
       {/* Avatar and title row */}
       <div className="flex items-center absolute left-2 top-8">
         <div
-          className="w-12 h-12 rounded-full bg-white shadow-lg overflow-hidden flex items-center justify-center"
+          className="w-12 h-12 rounded-full shadow-lg overflow-hidden flex items-center justify-center"
           style={{
             border: "1.5px solid rgb(0,0,0)",
             boxShadow: "3px 3px 0px rgba(0,0,0,0.7)",
+            background: (() => {
+              // Pick a random emoji/color for each card
+              if (avatarUrl) return '#fff';
+              // Use a seeded random based on communityId for consistency
+              let hash = 0;
+              for (let i = 0; i < communityId.length; i++) {
+                hash = communityId.charCodeAt(i) + ((hash << 5) - hash);
+              }
+              const idx = Math.abs(hash) % communityEmoji.length;
+              return communityEmoji[idx].hex;
+            })(),
           }}
         >
           {avatarUrl ? (
             <Image src={avatarUrl} alt="Avatar" width={48} height={48} className="w-full h-full object-cover" />
           ) : (
-            <User className="w-10 h-10" style={{ color: "var(--foreground)" }} />
+            (() => {
+              // Pick a random emoji for each card, same as above
+              let hash = 0;
+              for (let i = 0; i < communityId.length; i++) {
+                hash = communityId.charCodeAt(i) + ((hash << 5) - hash);
+              }
+              const idx = Math.abs(hash) % communityEmoji.length;
+              return (
+                <span style={{ fontSize: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+                  {communityEmoji[idx].emoji}
+                </span>
+              );
+            })()
           )}
         </div>
         <div className="ml-2 flex items-center flex-1 min-w-0">
@@ -77,7 +123,7 @@ function CommunityCard({ communityId, avatarUrl, portadaUrl, title, isPartOf: in
           <button
             className="ml-2 flex items-center justify-center w-6 h-6 rounded-full border border-black shadow mt-4 flex-shrink-0"
             style={{
-              background: isPartOf ? "#3DDC97" : "#B3D8FF",
+              background: isPartOf ? "var(--color-chip-9)" : "var(--color-chip-1",
               boxShadow: "2px 2px 0px rgba(0,0,0,0.5)",
               pointerEvents: "none",
               cursor: "pointer",
@@ -139,7 +185,7 @@ const Communities = () => {
   // Transform API data to match CommunityCard props
   const communities = communitiesData.map((community: any) => ({
     communityId: community.id,
-    avatarUrl: "", // Communities don't have avatars in the current schema
+    avatarUrl: community.background_image, // Communities don't have avatars in the current schema
     portadaUrl: "", // Communities don't have cover images in the current schema
     title: community.title, // API transforms 'name' to 'title'
     isPartOf: userId ? community.memberIds?.includes(userId) : false,
